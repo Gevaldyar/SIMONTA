@@ -12,14 +12,12 @@ class WebsiteScanService
 {
     public function __construct(
         private readonly HttpInspector $httpInspector,
-        private readonly TechnologyDetectionService $detectionService
+        private readonly TechnologyDetectionService $detectionService,
+        private readonly TechnologyChangeDetectionService $changeDetectionService
     ) {}
 
     /**
      * Membuat dan langsung menjalankan pemeriksaan website.
-     *
-     * Untuk sekarang proses berjalan secara synchronous.
-     * Nantinya proses ini dapat dipanggil melalui Queue Job.
      */
     public function scan(Website $website): Scan
     {
@@ -29,7 +27,6 @@ class WebsiteScanService
             );
         }
 
-        // Buat riwayat pemeriksaan baru.
         $scan = $website->scans()->create([
             'status' => 'queued',
             'scheduled_for' => now(),
@@ -39,7 +36,7 @@ class WebsiteScanService
     }
 
     /**
-     * Menjalankan pemeriksaan dari sebuah scan yang sudah dibuat.
+     * Menjalankan pemeriksaan dari scan yang sudah dibuat.
      */
     public function process(Scan $scan): Scan
     {
@@ -51,7 +48,6 @@ class WebsiteScanService
             );
         }
 
-        // Tandai bahwa pemeriksaan sudah dimulai.
         $scan->forceFill([
             'status' => 'running',
             'started_at' => now(),
@@ -64,13 +60,13 @@ class WebsiteScanService
                 $scan->website->url
             );
 
-            // 2. Simpan hasil deteksi dan status scan
-            // dalam satu transaksi database.
+            // 2. Simpan hasil deteksi, status scan, dan perubahan
+            // teknologi dalam satu transaksi database.
             DB::transaction(function () use (
                 $scan,
                 $fingerprint
             ) {
-                // Jalankan mesin identifikasi teknologi.
+                // Identifikasi teknologi.
                 $this->detectionService->detect(
                     $scan,
                     $fingerprint
@@ -78,16 +74,13 @@ class WebsiteScanService
 
                 $pageTitle = $fingerprint['page_title'] ?? null;
 
-                // Kolom page_title di database menggunakan
-                // panjang default VARCHAR(255).
                 if (is_string($pageTitle)) {
                     $pageTitle = substr($pageTitle, 0, 255);
                 }
 
-                // Simpan informasi pemeriksaan.
+                // Tandai scan selesai terlebih dahulu.
                 $scan->forceFill([
                     'status' => 'completed',
-
                     'completed_at' => now(),
 
                     'http_status_code' =>
@@ -117,6 +110,12 @@ class WebsiteScanService
                             $fingerprint['headers'],
                     ],
                 ])->save();
+
+                // 3. Bandingkan dengan scan sebelumnya.
+                // Method ini tidak membuat catatan untuk scan pertama.
+                $this->changeDetectionService->record(
+                    $scan->fresh()
+                );
             }, 3);
 
         } catch (Throwable $exception) {
@@ -135,10 +134,10 @@ class WebsiteScanService
             ])->save();
         }
 
-        // Kembalikan scan beserta hasil identifikasinya.
         return $scan->fresh([
             'website',
             'scanTechnologies.technology',
+            'technologyChanges.technology',
         ]);
     }
 }

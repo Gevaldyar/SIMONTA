@@ -49,4 +49,11 @@ class Scan extends Model
     {
         return $this->hasMany(ScanTechnology::class);
     }
+    /**
+ * Perubahan teknologi yang ditemukan pada pemeriksaan ini.
+ */
+public function technologyChanges(): HasMany
+{
+    return $this->hasMany(TechnologyChange::class);
+}
 }
