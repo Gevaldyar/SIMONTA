@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Website extends Model
 {
@@ -39,5 +40,13 @@ class Website extends Model
     public function opd(): BelongsTo
     {
         return $this->belongsTo(Opd::class);
+    }
+
+    /**
+     * Satu website dapat memiliki banyak riwayat pemeriksaan.
+     */
+    public function scans(): HasMany
+    {
+        return $this->hasMany(Scan::class);
     }
 }
