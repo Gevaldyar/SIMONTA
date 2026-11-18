@@ -229,16 +229,19 @@ public function index(Request $request): JsonResponse
     public function show(Scan $scan): JsonResponse
     {
         $scan->load([
-            'website' => function ($query) {
-                $query->withTrashed()
-                    ->with([
-                        'opd' => fn ($q) => $q->withTrashed(),
-                    ]);
-            },
+    'website' => function ($query) {
+        $query->withTrashed()
+            ->with([
+                'opd' => fn ($q) => $q->withTrashed(),
+            ]);
+    },
 
-            'scanTechnologies.technology',
-            'scanTechnologies.signature',
-        ]);
+    'scanTechnologies.technology',
+    'scanTechnologies.signature',
+
+    'technologyChanges.technology',
+    'technologyChanges.previousScan',
+]);
 
         return response()->json([
             'data' => $scan,

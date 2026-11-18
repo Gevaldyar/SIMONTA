@@ -10,6 +10,7 @@ use App\Http\Controllers\Api\TechnologyController;
 use App\Http\Controllers\Api\DashboardController;
 use App\Http\Controllers\Api\ProfileController;
 use App\Http\Controllers\Api\ReportController;
+use App\Http\Controllers\Api\TechnologyChangeController;
 
 Route::middleware('auth:sanctum')->group(function () {
 
@@ -91,6 +92,29 @@ Route::get('/technologies', [TechnologyController::class, 'index']);
 Route::get(
     '/technologies/{technology}',
     [TechnologyController::class, 'show']
+);
+
+// ===================================
+// TECHNOLOGY CHANGE DETECTION
+// ===================================
+
+// Ringkasan perubahan teknologi.
+// Harus diletakkan sebelum route {technologyChange}.
+Route::get(
+    '/technology-changes/summary',
+    [TechnologyChangeController::class, 'summary']
+);
+
+// Daftar perubahan teknologi.
+Route::get(
+    '/technology-changes',
+    [TechnologyChangeController::class, 'index']
+);
+
+// Detail satu perubahan teknologi.
+Route::get(
+    '/technology-changes/{technologyChange}',
+    [TechnologyChangeController::class, 'show']
 );
 
 // ===================================
