@@ -32,7 +32,9 @@ class Website extends Model
         'is_active' => 'boolean',
         'monitoring_enabled' => 'boolean',
         'monitoring_interval_minutes' => 'integer',
+        'next_scan_at' => 'datetime',
     ];
+    
 
     /**
      * Website dimiliki oleh satu OPD.

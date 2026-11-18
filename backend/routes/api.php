@@ -6,6 +6,8 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\OpdController;
 use App\Http\Controllers\Api\WebsiteController;
 use App\Http\Controllers\Api\ScanController;
+use App\Http\Controllers\Api\TechnologyController;
+use App\Http\Controllers\Api\DashboardController;
 
 Route::middleware('auth:sanctum')->group(function () {
 
@@ -77,4 +79,35 @@ Route::middleware('auth:sanctum')->group(function () {
         '/websites/{website}/scans',
         [ScanController::class, 'store']
     )->middleware('throttle:5,1');
+
+    // ===================================
+// TECHNOLOGY REGISTRY
+// ===================================
+
+Route::get('/technologies', [TechnologyController::class, 'index']);
+
+Route::get(
+    '/technologies/{technology}',
+    [TechnologyController::class, 'show']
+);
+
+// ===================================
+// DASHBOARD STATISTICS
+// ===================================
+
+Route::get(
+    '/dashboard/summary',
+    [DashboardController::class, 'summary']
+);
+
+Route::get(
+    '/dashboard/technology-distribution',
+    [DashboardController::class, 'technologyDistribution']
+);
+
+Route::get(
+    '/dashboard/recent-scans',
+    [DashboardController::class, 'recentScans']
+);
+
 });

@@ -12,6 +12,8 @@ use App\Services\PublicUrlValidator;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use RuntimeException;
 use Tests\TestCase;
+use App\Jobs\RunWebsiteScanJob;
+use Illuminate\Support\Facades\Queue;
 
 class ScanApiTest extends TestCase
 {
@@ -89,82 +91,68 @@ class ScanApiTest extends TestCase
         )->assertUnauthorized();
     }
 
-    public function test_admin_can_manually_scan_a_website(): void
-    {
-        $this->loginAsAdmin();
+    
+public function test_admin_can_manually_scan_a_website(): void
+{
+    $this->loginAsAdmin();
 
-        $website = $this->createWebsite();
+    Queue::fake();
 
-        // Buat teknologi PHP.
-        $php = Technology::create([
-            'name' => 'PHP',
-            'slug' => 'php',
-            'category' => 'backend_language',
-            'vendor' => 'PHP Group',
-            'is_active' => true,
-        ]);
+    $website = $this->createWebsite();
 
-        // Buat signature deteksi.
-        $php->signatures()->create([
-            'name' => 'PHP Header Detection',
-            'type' => 'header',
-            'target' => 'x-powered-by',
-            'pattern' => 'PHP/',
-            'match_type' => 'contains',
-            'version_pattern' => '/PHP\/([0-9.]+)/i',
-            'confidence' => 95,
-            'is_active' => true,
-        ]);
+    $response = $this->postJson(
+        "/api/websites/{$website->id}/scans"
+    );
 
-        // Simulasikan respons website.
-        $inspector = $this->fakeInspector([
-            [
-                'status_code' => 200,
+    $response->assertAccepted()
+        ->assertJsonPath('data.status', 'queued');
 
-                'headers' => [
-                    'content-type' => ['text/html'],
-                    'x-powered-by' => ['PHP/8.3.2'],
-                ],
+    $scanId = $response->json('data.id');
 
-                'body' => '
-                    <html>
-                        <head>
-                            <title>Portal OPD</title>
-                        </head>
-                        <body>Selamat Datang</body>
-                    </html>
-                ',
-            ],
-        ]);
+    // Memastikan Job masuk antrean.
+    Queue::assertPushed(
+        RunWebsiteScanJob::class,
+        fn ($job) => $job->scanId === $scanId
+    );
 
-        $this->app->instance(
-            HttpInspector::class,
-            $inspector
-        );
+    // Memastikan riwayat scan tersimpan.
+    $this->assertDatabaseHas('scans', [
+        'id' => $scanId,
+        'website_id' => $website->id,
+        'status' => 'queued',
+    ]);
 
-        // Request manual scan.
-        $response = $this->postJson(
-            "/api/websites/{$website->id}/scans"
-        );
+    // Memastikan jadwal otomatis berikutnya sudah diatur.
+    $this->assertNotNull(
+        $website->fresh()->next_scan_at
+    );
+}
 
-        $response->assertCreated()
-            ->assertJsonPath('data.status', 'completed')
-            ->assertJsonPath('data.http_status_code', 200)
-            ->assertJsonPath('data.page_title', 'Portal OPD');
 
-        // Memastikan teknologi ditemukan.
-        $response->assertJsonPath(
-            'data.scan_technologies.0.version',
-            '8.3.2'
-        );
+public function test_duplicate_manual_scan_is_rejected_while_another_scan_is_pending(): void
+{
+    $this->loginAsAdmin();
 
-        // Memastikan scan benar-benar tersimpan.
-        $this->assertDatabaseHas('scans', [
-            'website_id' => $website->id,
-            'status' => 'completed',
-            'http_status_code' => 200,
-        ]);
-    }
+    Queue::fake();
+
+    $website = $this->createWebsite();
+
+    // Buat scan yang masih dalam antrean.
+    $website->scans()->create([
+        'status' => 'queued',
+        'scheduled_for' => now(),
+    ]);
+
+    $this->postJson(
+        "/api/websites/{$website->id}/scans"
+    )->assertStatus(409);
+
+    // Tidak boleh ada job tambahan.
+    Queue::assertNothingPushed();
+
+    // Tetap hanya ada satu riwayat scan.
+    $this->assertDatabaseCount('scans', 1);
+}
 
     public function test_admin_can_view_global_scan_history(): void
     {

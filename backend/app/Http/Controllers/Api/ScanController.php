@@ -5,7 +5,8 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Models\Scan;
 use App\Models\Website;
-use App\Services\WebsiteScanService;
+use App\Jobs\RunWebsiteScanJob;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
@@ -111,32 +112,85 @@ class ScanController extends Controller
     /**
      * Menjalankan pemeriksaan website secara manual.
      */
-    public function store(
-        Website $website,
-        WebsiteScanService $scanService
-    ): JsonResponse {
-        if (!$website->is_active) {
-            return response()->json([
-                'message' => 'Website tidak aktif dan tidak dapat diperiksa.',
-            ], 409);
+    
+/**
+ * Memasukkan pemeriksaan website ke antrean.
+ */
+    public function store(Website $website): JsonResponse
+    {
+        $result = DB::transaction(function () use ($website) {
+
+            // Kunci data website agar tidak terjadi
+            // pembuatan scan ganda secara bersamaan.
+            $lockedWebsite = Website::query()
+                ->with('opd')
+                ->whereKey($website->id)
+                ->lockForUpdate()
+                ->firstOrFail();
+
+            if (
+                !$lockedWebsite->is_active
+                || !$lockedWebsite->opd?->is_active
+            ) {
+                return [
+                    'error' => 'inactive',
+                ];
+            }
+
+            // Periksa apakah website masih memiliki scan
+            // yang sedang menunggu atau sedang berjalan.
+            $hasPendingScan = $lockedWebsite->scans()
+                ->whereIn('status', ['queued', 'running'])
+                ->exists();
+
+            if ($hasPendingScan) {
+                return [
+                    'error' => 'pending',
+                ];
+            }
+
+            // Buat riwayat scan dengan status queued.
+            $scan = $lockedWebsite->scans()->create([
+                'status' => 'queued',
+                'scheduled_for' => now(),
+            ]);
+
+            // Jika monitoring otomatis aktif, atur jadwal
+            // pemeriksaan otomatis berikutnya.
+            if ($lockedWebsite->monitoring_enabled) {
+                $lockedWebsite->forceFill([
+                    'next_scan_at' => now()->addMinutes(
+                    $lockedWebsite->monitoring_interval_minutes
+                ),
+            ])->save();
         }
 
-        $scan = $scanService->scan($website);
+        return [
+            'scan' => $scan,
+        ];
+    });
 
-        $scan->load([
-            'website',
-            'scanTechnologies.technology',
-            'scanTechnologies.signature',
-        ]);
-
-        $message = $scan->status === 'completed'
-            ? 'Pemeriksaan website berhasil diselesaikan.'
-            : 'Pemeriksaan selesai dengan status gagal.';
-
+    if (($result['error'] ?? null) === 'inactive') {
         return response()->json([
-            'message' => $message,
-            'data' => $scan,
-        ], 201);
+            'message' => 'Website atau OPD tidak aktif dan tidak dapat diperiksa.',
+        ], 409);
+    }
+
+    if (($result['error'] ?? null) === 'pending') {
+        return response()->json([
+            'message' => 'Website sudah memiliki pemeriksaan yang sedang menunggu atau berjalan.',
+        ], 409);
+    }
+
+    $scan = $result['scan'];
+
+    // Dispatch setelah data scan berhasil disimpan.
+    RunWebsiteScanJob::dispatch($scan->id)->afterCommit();
+
+    return response()->json([
+        'message' => 'Pemeriksaan website berhasil dimasukkan ke antrean.',
+        'data' => $scan,
+    ], 202);
     }
 
     /**
