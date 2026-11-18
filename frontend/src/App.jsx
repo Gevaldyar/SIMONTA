@@ -13,8 +13,14 @@ import DashboardLayout from './layouts/DashboardLayout'
 
 import LoginPage from './pages/auth/LoginPage'
 import DashboardPage from './pages/dashboard/DashboardPage'
-import ModulePlaceholderPage from './pages/ModulePlaceholderPage'
 import NotFoundPage from './pages/errors/NotFoundPage'
+import OpdManagementPage from './pages/opds/OpdManagementPage'
+import WebsiteManagementPage from './pages/websites/WebsiteManagementPage'
+import MonitoringCenterPage from './pages/monitoring/MonitoringCenterPage'
+import TechnologyRegistryPage from './pages/technologies/TechnologyRegistryPage'
+import ScanHistoryPage from './pages/history/ScanHistoryPage'
+import SettingsPage from "./pages/settings/SettingsPage";
+import ReportsPage from './pages/reports/ReportsPage'
 
 function App() {
   return (
@@ -39,70 +45,39 @@ function App() {
           />
 
           <Route
-            path="opds"
-            element={
-              <ModulePlaceholderPage
-                section="02"
-                title="OPD Registry"
-                description="Pengelolaan dan pendataan organisasi perangkat daerah Kota Tasikmalaya."
-              />
-            }
-          />
+  path="opds"
+  element={<OpdManagementPage />}
+/>
 
           <Route
-            path="websites"
-            element={
-              <ModulePlaceholderPage
-                section="03"
-                title="Website Registry"
-                description="Pusat pengelolaan alamat website publik yang akan dimasukkan ke dalam sistem monitoring."
-              />
-            }
-          />
+  path="websites"
+  element={<WebsiteManagementPage />}
+/>
 
           <Route
-            path="monitoring"
-            element={
-              <ModulePlaceholderPage
-                section="04"
-                title="Monitoring Center"
-                description="Pemantauan ketersediaan dan waktu respons website OPD secara terjadwal."
-              />
-            }
-          />
+  path="monitoring"
+  element={<MonitoringCenterPage />}
+/>
 
           <Route
-            path="technologies"
-            element={
-              <ModulePlaceholderPage
-                section="05"
-                title="Technology Intelligence"
-                description="Informasi teknologi website yang berhasil diidentifikasi melalui pemeriksaan."
-              />
-            }
-          />
+  path="technologies"
+  element={<TechnologyRegistryPage />}
+/>
 
           <Route
-            path="history"
-            element={
-              <ModulePlaceholderPage
-                section="06"
-                title="Inspection History"
-                description="Arsip hasil monitoring dan identifikasi teknologi dari setiap siklus pemeriksaan."
-              />
-            }
-          />
+  path="history"
+  element={<ScanHistoryPage />}
+/>
 
           <Route
-            path="settings"
-            element={
-              <ModulePlaceholderPage
-                section="07"
-                title="System Configuration"
-                description="Konfigurasi sistem, akun administrator, serta parameter monitoring SIMONTA."
-              />
-            }
-          />
+  path="reports"
+  element={<ReportsPage />}
+/>
+
+          <Route
+  path="settings"
+  element={<SettingsPage />}
+/>
 
         </Route>
       </Route>

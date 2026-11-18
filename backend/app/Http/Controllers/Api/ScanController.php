@@ -16,59 +16,89 @@ class ScanController extends Controller
     /**
      * Menampilkan seluruh riwayat pemeriksaan.
      */
-    public function index(Request $request): JsonResponse
-    {
-        $filters = $request->validate([
-            'status' => [
-                'sometimes',
-                Rule::in([
-                    'queued',
-                    'running',
-                    'completed',
-                    'failed',
-                ]),
-            ],
+    
+public function index(Request $request): JsonResponse
+{
+    $filters = $request->validate([
+        'status' => [
+            'sometimes',
+            Rule::in([
+                'queued',
+                'running',
+                'completed',
+                'failed',
+            ]),
+        ],
 
-            'website_id' => [
-                'sometimes',
-                'integer',
-                'exists:websites,id',
-            ],
+        'website_id' => [
+            'sometimes',
+            'integer',
+            'exists:websites,id',
+        ],
 
-            'per_page' => [
-                'sometimes',
-                'integer',
-                'min:1',
-                'max:100',
-            ],
-        ]);
+        'date_from' => [
+            'sometimes',
+            'date_format:Y-m-d',
+        ],
 
-        $query = Scan::query()
-            ->with([
-                'website' => function ($query) {
-                    $query->withTrashed()
-                        ->select('id', 'opd_id', 'name', 'url')
-                        ->with([
-                            'opd' => fn ($q) => $q->withTrashed()
-                                ->select('id', 'name', 'code'),
-                        ]);
-                },
-            ])
-            ->withCount('scanTechnologies')
-            ->latest('id');
+        'date_to' => [
+            'sometimes',
+            'date_format:Y-m-d',
+            'after_or_equal:date_from',
+        ],
 
-        if (isset($filters['status'])) {
-            $query->where('status', $filters['status']);
-        }
+        'per_page' => [
+            'sometimes',
+            'integer',
+            'min:1',
+            'max:100',
+        ],
+    ]);
 
-        if (isset($filters['website_id'])) {
-            $query->where('website_id', $filters['website_id']);
-        }
+    $query = Scan::query()
+        ->with([
+            'website' => function ($query) {
+                $query->withTrashed()
+                    ->select('id', 'opd_id', 'name', 'url')
+                    ->with([
+                        'opd' => fn ($q) => $q->withTrashed()
+                            ->select('id', 'name', 'code'),
+                    ]);
+            },
+        ])
+        ->withCount('scanTechnologies')
+        ->latest('id');
 
-        return response()->json(
-            $query->paginate($filters['per_page'] ?? 15)
+    if (isset($filters['status'])) {
+        $query->where('status', $filters['status']);
+    }
+
+    if (isset($filters['website_id'])) {
+        $query->where('website_id', $filters['website_id']);
+    }
+
+    // Filter menggunakan tanggal dibuatnya record scan.
+    if (isset($filters['date_from'])) {
+        $query->whereDate(
+            'scans.created_at',
+            '>=',
+            $filters['date_from']
         );
     }
+
+    if (isset($filters['date_to'])) {
+        $query->whereDate(
+            'scans.created_at',
+            '<=',
+            $filters['date_to']
+        );
+    }
+
+    return response()->json(
+        $query->paginate($filters['per_page'] ?? 20)
+    );
+}
+
 
     /**
      * Menampilkan riwayat pemeriksaan satu website.

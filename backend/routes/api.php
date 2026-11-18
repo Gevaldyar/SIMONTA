@@ -8,6 +8,8 @@ use App\Http\Controllers\Api\WebsiteController;
 use App\Http\Controllers\Api\ScanController;
 use App\Http\Controllers\Api\TechnologyController;
 use App\Http\Controllers\Api\DashboardController;
+use App\Http\Controllers\Api\ProfileController;
+use App\Http\Controllers\Api\ReportController;
 
 Route::middleware('auth:sanctum')->group(function () {
 
@@ -109,5 +111,26 @@ Route::get(
     '/dashboard/recent-scans',
     [DashboardController::class, 'recentScans']
 );
+
+// ===================================
+// ADMINISTRATOR PROFILE & SETTINGS
+// ===================================
+
+Route::get(
+    '/settings/profile',
+    [ProfileController::class, 'show']
+);
+
+Route::patch(
+    '/settings/profile',
+    [ProfileController::class, 'update']
+);
+
+Route::put(
+    '/settings/password',
+    [ProfileController::class, 'updatePassword']
+);
+
+Route::get('/reports/scans/export', [ReportController::class, 'export']);
 
 });

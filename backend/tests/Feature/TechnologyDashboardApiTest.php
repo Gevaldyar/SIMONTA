@@ -34,11 +34,16 @@ class TechnologyDashboardApiTest extends TestCase
 
         $this->getJson('/api/technologies?per_page=100')
             ->assertOk()
-            ->assertJsonPath('total', 13);
+            ->assertJsonPath('total', 17);
 
         $this->getJson('/api/technologies?search=Laravel')
             ->assertOk()
             ->assertJsonPath('data.0.slug', 'laravel');
+
+        // Memastikan pencarian Next.js berjalan dengan benar.
+        $this->getJson('/api/technologies?search=Next.js')
+            ->assertOk()
+            ->assertJsonPath('data.0.slug', 'nextjs');
 
         $this->getJson('/api/technologies?category=cms')
             ->assertOk()
@@ -83,8 +88,8 @@ class TechnologyDashboardApiTest extends TestCase
             ->assertJsonPath('data.statistics.active_opds', 1)
             ->assertJsonPath('data.statistics.total_websites', 1)
             ->assertJsonPath('data.statistics.monitored_websites', 1)
-            ->assertJsonPath('data.statistics.total_technologies', 13)
-            ->assertJsonPath('data.statistics.total_signatures', 20);
+            ->assertJsonPath('data.statistics.total_technologies', 17)
+            ->assertJsonPath('data.statistics.total_signatures', 24);
     }
 
     public function test_technology_usage_counts_latest_completed_scan_per_website(): void

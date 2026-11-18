@@ -18,8 +18,14 @@ class TechnologyCatalogSeederTest extends TestCase
     {
         $this->seed(TechnologyCatalogSeeder::class);
 
-        $this->assertSame(13, Technology::count());
-        $this->assertSame(20, TechnologySignature::count());
+        $this->assertSame(17, Technology::count());
+        $this->assertSame(24, TechnologySignature::count());
+
+        $this->assertDatabaseHas('technologies', [
+    'name' => 'Next.js',
+    'slug' => 'nextjs',
+    'category' => 'frontend_framework',
+]);
 
         $this->assertDatabaseHas('technologies', [
             'name' => 'Laravel',
@@ -37,6 +43,21 @@ class TechnologyCatalogSeederTest extends TestCase
             'name' => 'Laravel Session Cookie',
             'pattern' => 'laravel_session',
         ]);
+
+        $this->assertDatabaseHas('technologies', [
+    'slug' => 'nuxt',
+    'category' => 'frontend_framework',
+]);
+
+$this->assertDatabaseHas('technologies', [
+    'slug' => 'sveltekit',
+    'category' => 'frontend_framework',
+]);
+
+$this->assertDatabaseHas('technologies', [
+    'slug' => 'astro',
+    'category' => 'frontend_framework',
+]);
     }
 
     public function test_running_seeder_twice_does_not_create_duplicates(): void
@@ -44,8 +65,8 @@ class TechnologyCatalogSeederTest extends TestCase
         $this->seed(TechnologyCatalogSeeder::class);
         $this->seed(TechnologyCatalogSeeder::class);
 
-        $this->assertSame(13, Technology::count());
-        $this->assertSame(20, TechnologySignature::count());
+        $this->assertSame(17, Technology::count());
+        $this->assertSame(24, TechnologySignature::count());
     }
 
     public function test_detection_engine_uses_seeded_catalog(): void

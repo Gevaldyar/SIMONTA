@@ -222,4 +222,196 @@ class TechnologyDetectionServiceTest extends TestCase
             $scan->scanTechnologies()->count()
         );
     }
+
+public function test_engine_detects_nextjs_from_static_asset_reference(): void
+{
+    $this->seed(\Database\Seeders\TechnologyCatalogSeeder::class);
+
+    $nextJs = Technology::where('slug', 'nextjs')->firstOrFail();
+
+    $opd = Opd::create([
+        'name' => 'Dinas Pengujian Next.js',
+    ]);
+
+    $website = $opd->websites()->create([
+        'name' => 'Website Next.js',
+        'url' => 'https://example.com',
+    ]);
+
+    $scan = $website->scans()->create([
+        'status' => 'completed',
+        'http_status_code' => 200,
+    ]);
+
+    // Simulasi HTML yang ditemukan pada website Diskominfo.
+    $fingerprint = [
+        'html' => '<html>
+            <head>
+                <script src="/_next/static/chunks/app.js" async></script>
+                <script src="/_next/static/chunks/webpack.js"></script>
+            </head>
+            <body>
+                <h1>Website Next.js</h1>
+            </body>
+        </html>',
+    ];
+
+    $results = app(TechnologyDetectionService::class)
+        ->detect($scan, $fingerprint);
+
+    $nextJsResult = $results->firstWhere(
+        'technology_id',
+        $nextJs->id
+    );
+
+    $this->assertNotNull($nextJsResult);
+    $this->assertSame(95, $nextJsResult->confidence);
+    $this->assertSame(
+        'Next.js Static Asset Reference',
+        $nextJsResult->evidence[0]['signature_name']
+    );
+    $this->assertNull($nextJsResult->version);
+    $this->assertSame(1, $scan->scanTechnologies()->count());
+}
+
+public function test_engine_does_not_detect_nextjs_from_plain_text_marker(): void
+{
+    $this->seed(\Database\Seeders\TechnologyCatalogSeeder::class);
+
+    $nextJs = Technology::where('slug', 'nextjs')->firstOrFail();
+
+    $opd = Opd::create([
+        'name' => 'Dinas Pengujian Negatif',
+    ]);
+
+    $website = $opd->websites()->create([
+        'name' => 'Website HTML Biasa',
+        'url' => 'https://example.com',
+    ]);
+
+    $scan = $website->scans()->create([
+        'status' => 'completed',
+        'http_status_code' => 200,
+    ]);
+
+    // Marker hanya ada sebagai teks biasa, bukan atribut src atau href.
+    $fingerprint = [
+        'html' => '<html>
+            <body>
+                Dokumentasi ini menyebut
+                /_next/static/chunks/app.js
+                sebagai contoh path.
+            </body>
+        </html>',
+    ];
+
+    $results = app(TechnologyDetectionService::class)
+        ->detect($scan, $fingerprint);
+
+    $nextJsResult = $results->firstWhere(
+        'technology_id',
+        $nextJs->id
+    );
+
+    $this->assertNull($nextJsResult);
+    $this->assertSame(0, $scan->scanTechnologies()->count());
+}
+
+public function test_engine_detects_nuxt_sveltekit_and_astro(): void
+{
+    $this->seed(
+        \Database\Seeders\TechnologyCatalogSeeder::class
+    );
+
+    $opd = Opd::create([
+        'name' => 'Dinas Pengujian Framework',
+    ]);
+
+    $website = $opd->websites()->create([
+        'name' => 'Website Framework',
+        'url' => 'https://example.com',
+    ]);
+
+    $scan = $website->scans()->create([
+        'status' => 'completed',
+        'http_status_code' => 200,
+    ]);
+
+    $fingerprint = [
+        'html' => '
+            <html>
+                <head>
+                    <script src="/_nuxt/entry.js"></script>
+
+                    <script src="/_app/immutable/entry/start.js"></script>
+
+                    <link rel="stylesheet" href="/_astro/index.css">
+                </head>
+                <body>
+                    <h1>Website Framework</h1>
+                </body>
+            </html>
+        ',
+    ];
+
+    $results = app(TechnologyDetectionService::class)
+        ->detect($scan, $fingerprint);
+
+    $detectedSlugs = $results
+        ->map(fn ($item) => $item->technology?->slug)
+        ->filter()
+        ->all();
+
+    $this->assertEqualsCanonicalizing(
+        ['nuxt', 'sveltekit', 'astro'],
+        $detectedSlugs
+    );
+
+    $this->assertCount(3, $results);
+    $this->assertSame(3, $scan->scanTechnologies()->count());
+}
+
+public function test_engine_does_not_detect_frameworks_from_plain_text_paths(): void
+{
+    $this->seed(
+        \Database\Seeders\TechnologyCatalogSeeder::class
+    );
+
+    $opd = Opd::create([
+        'name' => 'Dinas Pengujian False Positive',
+    ]);
+
+    $website = $opd->websites()->create([
+        'name' => 'Website HTML Biasa',
+        'url' => 'https://example.com',
+    ]);
+
+    $scan = $website->scans()->create([
+        'status' => 'completed',
+        'http_status_code' => 200,
+    ]);
+
+    $fingerprint = [
+        'html' => '
+            <html>
+                <body>
+                    Dokumentasi Nuxt menggunakan /_nuxt/entry.js.
+                    Dokumentasi SvelteKit menggunakan /_app/immutable/.
+                    Dokumentasi Astro menggunakan /_astro/index.css.
+                </body>
+            </html>
+        ',
+    ];
+
+    $results = app(TechnologyDetectionService::class)
+        ->detect($scan, $fingerprint);
+
+    $this->assertCount(0, $results);
+
+    $this->assertSame(
+        0,
+        $scan->scanTechnologies()->count()
+    );
+}
+
 }

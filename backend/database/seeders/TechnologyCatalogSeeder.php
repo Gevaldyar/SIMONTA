@@ -10,11 +10,9 @@ class TechnologyCatalogSeeder extends Seeder
     public function run(): void
     {
         $catalog = [
-
-            // ======================================
+            // =====================================================
             // BACKEND LANGUAGES
-            // ======================================
-
+            // =====================================================
             [
                 'technology' => [
                     'name' => 'PHP',
@@ -48,10 +46,9 @@ class TechnologyCatalogSeeder extends Seeder
                 ],
             ],
 
-            // ======================================
+            // =====================================================
             // BACKEND FRAMEWORKS
-            // ======================================
-
+            // =====================================================
             [
                 'technology' => [
                     'name' => 'Laravel',
@@ -75,10 +72,9 @@ class TechnologyCatalogSeeder extends Seeder
                 ],
             ],
 
-            // ======================================
+            // =====================================================
             // CMS
-            // ======================================
-
+            // =====================================================
             [
                 'technology' => [
                     'name' => 'WordPress',
@@ -111,7 +107,6 @@ class TechnologyCatalogSeeder extends Seeder
                     ],
                 ],
             ],
-
             [
                 'technology' => [
                     'name' => 'Drupal',
@@ -144,7 +139,6 @@ class TechnologyCatalogSeeder extends Seeder
                     ],
                 ],
             ],
-
             [
                 'technology' => [
                     'name' => 'Joomla',
@@ -178,10 +172,9 @@ class TechnologyCatalogSeeder extends Seeder
                 ],
             ],
 
-            // ======================================
+            // =====================================================
             // FRONTEND FRAMEWORKS
-            // ======================================
-
+            // =====================================================
             [
                 'technology' => [
                     'name' => 'React',
@@ -214,7 +207,6 @@ class TechnologyCatalogSeeder extends Seeder
                     ],
                 ],
             ],
-
             [
                 'technology' => [
                     'name' => 'Vue.js',
@@ -247,7 +239,6 @@ class TechnologyCatalogSeeder extends Seeder
                     ],
                 ],
             ],
-
             [
                 'technology' => [
                     'name' => 'Angular',
@@ -270,11 +261,109 @@ class TechnologyCatalogSeeder extends Seeder
                     ],
                 ],
             ],
+            [
+                'technology' => [
+                    'name' => 'Next.js',
+                    'slug' => 'nextjs',
+                    'category' => 'frontend_framework',
+                    'vendor' => 'Vercel',
+                    'website_url' => 'https://nextjs.org',
+                    'description' => 'React-based framework for building web applications.',
+                    'is_active' => true,
+                ],
+                'signatures' => [
+                    [
+                        'name' => 'Next.js Static Asset Reference',
+                        'type' => 'html',
+                        'target' => null,
+                        'pattern' => '~(?:src|href)\s*=\s*["\'][^"\']*/_next/static/(?:chunks|webpack)/[^"\']*["\']~i',
+                        'match_type' => 'regex',
+                        'version_pattern' => null,
+                        'confidence' => 95,
+                        'is_active' => true,
+                    ],
+                ],
+            ],
 
             // ======================================
+// VUE-BASED FRAMEWORKS
+// ======================================
+
+[
+    'technology' => [
+        'name' => 'Nuxt',
+        'slug' => 'nuxt',
+        'category' => 'frontend_framework',
+        'vendor' => 'Nuxt',
+        'website_url' => 'https://nuxt.com',
+        'description' => 'Vue-based framework for building full-stack web applications.',
+        'is_active' => true,
+    ],
+    'signatures' => [
+        [
+            'name' => 'Nuxt Static Asset Reference',
+            'type' => 'html',
+            'target' => null,
+            'pattern' => '~<(?:script|link)\b[^>]*\b(?:src|href)\s*=\s*["\'][^"\']*/_nuxt/[^"\']*["\'][^>]*>~i',
+            'match_type' => 'regex',
+            'version_pattern' => null,
+            'confidence' => 95,
+            'is_active' => true,
+        ],
+    ],
+],
+
+[
+    'technology' => [
+        'name' => 'SvelteKit',
+        'slug' => 'sveltekit',
+        'category' => 'frontend_framework',
+        'vendor' => 'Svelte',
+        'website_url' => 'https://svelte.dev/docs/kit',
+        'description' => 'Application framework built on Svelte.',
+        'is_active' => true,
+    ],
+    'signatures' => [
+        [
+            'name' => 'SvelteKit Immutable Asset Reference',
+            'type' => 'html',
+            'target' => null,
+            'pattern' => '~<(?:script|link)\b[^>]*\b(?:src|href)\s*=\s*["\'][^"\']*/_app/immutable/[^"\']*["\'][^>]*>~i',
+            'match_type' => 'regex',
+            'version_pattern' => null,
+            'confidence' => 95,
+            'is_active' => true,
+        ],
+    ],
+],
+
+[
+    'technology' => [
+        'name' => 'Astro',
+        'slug' => 'astro',
+        'category' => 'frontend_framework',
+        'vendor' => 'Astro',
+        'website_url' => 'https://astro.build',
+        'description' => 'Web framework for building content-focused websites.',
+        'is_active' => true,
+    ],
+    'signatures' => [
+        [
+            'name' => 'Astro Static Asset Reference',
+            'type' => 'html',
+            'target' => null,
+            'pattern' => '~<(?:script|link)\b[^>]*\b(?:src|href)\s*=\s*["\'][^"\']*/_astro/[^"\']*["\'][^>]*>~i',
+            'match_type' => 'regex',
+            'version_pattern' => null,
+            'confidence' => 90,
+            'is_active' => true,
+        ],
+    ],
+],
+
+            // =====================================================
             // JAVASCRIPT LIBRARIES
-            // ======================================
-
+            // =====================================================
             [
                 'technology' => [
                     'name' => 'jQuery',
@@ -298,10 +387,9 @@ class TechnologyCatalogSeeder extends Seeder
                 ],
             ],
 
-            // ======================================
+            // =====================================================
             // CSS FRAMEWORKS
-            // ======================================
-
+            // =====================================================
             [
                 'technology' => [
                     'name' => 'Bootstrap',
@@ -325,10 +413,9 @@ class TechnologyCatalogSeeder extends Seeder
                 ],
             ],
 
-            // ======================================
+            // =====================================================
             // WEB SERVERS
-            // ======================================
-
+            // =====================================================
             [
                 'technology' => [
                     'name' => 'Nginx',
@@ -351,7 +438,6 @@ class TechnologyCatalogSeeder extends Seeder
                     ],
                 ],
             ],
-
             [
                 'technology' => [
                     'name' => 'Apache',
@@ -375,10 +461,9 @@ class TechnologyCatalogSeeder extends Seeder
                 ],
             ],
 
-            // ======================================
+            // =====================================================
             // CDN AND PROXY
-            // ======================================
-
+            // =====================================================
             [
                 'technology' => [
                     'name' => 'Cloudflare',
@@ -414,20 +499,17 @@ class TechnologyCatalogSeeder extends Seeder
         ];
 
         foreach ($catalog as $entry) {
-            // Buat atau perbarui katalog teknologi berdasarkan slug.
+            // Create or update technology using its unique slug.
             $technology = Technology::updateOrCreate(
-                [
-                    'slug' => $entry['technology']['slug'],
-                ],
+                ['slug' => $entry['technology']['slug']],
                 $entry['technology']
             );
 
             foreach ($entry['signatures'] as $signature) {
                 $name = $signature['name'];
-
                 unset($signature['name']);
 
-                // Buat atau perbarui signature tanpa duplikasi.
+                // Create or update each signature without duplicates.
                 $technology->signatures()->updateOrCreate(
                     ['name' => $name],
                     $signature
@@ -435,14 +517,8 @@ class TechnologyCatalogSeeder extends Seeder
             }
         }
 
-        $this->command?->info(
-            'Technology catalog berhasil disinkronkan.'
-        );
-
-        $this->command?->info(
-            'Total teknologi: ' . Technology::count()
-        );
-
+        $this->command?->info('Technology catalog berhasil disinkronkan.');
+        $this->command?->info('Total teknologi: ' . Technology::count());
         $this->command?->info(
             'Total signature: ' . \App\Models\TechnologySignature::count()
         );

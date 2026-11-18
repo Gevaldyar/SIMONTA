@@ -1,5 +1,5 @@
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Outlet, useNavigate } from 'react-router'
 
 import Sidebar from '../components/layout/Sidebar'
@@ -11,8 +11,29 @@ function DashboardLayout() {
   const navigate = useNavigate()
 
   const [isSidebarOpen, setIsSidebarOpen] = useState(false)
+
+  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(() => {
+    try {
+      return localStorage.getItem('simonta-sidebar-collapsed') === 'true'
+    } catch {
+      return false
+    }
+  })
+
   const [isLoggingOut, setIsLoggingOut] = useState(false)
   const [logoutError, setLogoutError] = useState('')
+
+  // Simpan preferensi minimize sidebar.
+  useEffect(() => {
+    try {
+      localStorage.setItem(
+        'simonta-sidebar-collapsed',
+        String(isSidebarCollapsed)
+      )
+    } catch {
+      // Aplikasi tetap berjalan jika localStorage tidak tersedia.
+    }
+  }, [isSidebarCollapsed])
 
   const handleLogout = async () => {
     setLogoutError('')
@@ -23,7 +44,10 @@ function DashboardLayout() {
       navigate('/login', { replace: true })
     } catch (error) {
       console.error('Logout error:', error)
-      setLogoutError('Logout gagal. Periksa koneksi server dan coba kembali.')
+
+      setLogoutError(
+        'Logout gagal. Periksa koneksi server dan coba kembali.'
+      )
     } finally {
       setIsLoggingOut(false)
     }
@@ -33,28 +57,39 @@ function DashboardLayout() {
     setIsSidebarOpen(false)
   }
 
+  const toggleCollapse = () => {
+    setIsSidebarCollapsed((previous) => !previous)
+  }
+
   return (
     <div className="min-h-screen bg-[#EEE9DD] text-[#191A20] md:flex">
 
+      {/* Mobile backdrop */}
       {isSidebarOpen && (
         <button
           type="button"
           aria-label="Tutup navigasi"
           onClick={closeSidebar}
-          className="fixed inset-0 z-40 bg-[#191A20]/60 md:hidden"
+          className="simonta-backdrop-enter fixed inset-0 z-40 bg-[#191A20]/65 backdrop-blur-[2px] md:hidden"
         />
       )}
 
+      {/* Sidebar */}
       <Sidebar
         isOpen={isSidebarOpen}
         onNavigate={closeSidebar}
+        isCollapsed={isSidebarCollapsed}
+        onToggleCollapse={toggleCollapse}
       />
 
+      {/* Main content */}
       <div className="min-h-screen min-w-0 flex-1">
 
         <Topbar
           user={user}
           onMenuClick={() => setIsSidebarOpen(true)}
+          onToggleCollapse={toggleCollapse}
+          isSidebarCollapsed={isSidebarCollapsed}
           onLogout={handleLogout}
           isLoggingOut={isLoggingOut}
         />
