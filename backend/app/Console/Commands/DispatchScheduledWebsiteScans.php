@@ -91,13 +91,14 @@ class DispatchScheduledWebsiteScans extends Command
                         ]);
 
                         // Batasi interval ke rentang yang diizinkan.
-                        $interval = max(
-                            60,
-                            min(
-                                1440,
-                                (int) $website->monitoring_interval_minutes
-                            )
-                        );
+                        $allowedIntervals = [1, 5, 10, 30];
+
+$interval = (int) $website->monitoring_interval_minutes;
+
+// Perlindungan jika terdapat data lama atau tidak valid.
+if (! in_array($interval, $allowedIntervals, true)) {
+    $interval = 30;
+}
 
                         // Atur pemeriksaan otomatis selanjutnya.
                         $website->forceFill([

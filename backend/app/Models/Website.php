@@ -25,7 +25,7 @@ class Website extends Model
     protected $attributes = [
         'is_active' => true,
         'monitoring_enabled' => true,
-        'monitoring_interval_minutes' => 60,
+        'monitoring_interval_minutes' => 10,
     ];
 
     protected $casts = [

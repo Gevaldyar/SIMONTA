@@ -37,8 +37,7 @@ class UpdateWebsiteRequest extends FormRequest
             'monitoring_interval_minutes' => [
                 'sometimes',
                 'integer',
-                'min:60',
-                'max:1440',
+                Rule::in([1, 5, 10, 30]),
             ],
         ];
     }

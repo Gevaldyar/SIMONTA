@@ -64,7 +64,7 @@ class OpdWebsiteApiTest extends TestCase
         );
 
         $first->assertCreated()
-            ->assertJsonPath('data.monitoring_interval_minutes', 60);
+            ->assertJsonPath('data.monitoring_interval_minutes', 10);
 
         $this->postJson(
             "/api/opds/{$opd->id}/websites",
@@ -99,7 +99,7 @@ class OpdWebsiteApiTest extends TestCase
             [
                 'name' => 'Website Invalid',
                 'url' => 'ftp://example.com',
-                'monitoring_interval_minutes' => 30,
+                'monitoring_interval_minutes' => 60,
             ]
         )
             ->assertUnprocessable()
@@ -215,4 +215,89 @@ class OpdWebsiteApiTest extends TestCase
             'id' => $opd->id,
         ]);
     }
+
+public function test_website_accepts_supported_monitoring_intervals(): void
+{
+    $this->loginAsAdmin();
+
+    $opd = Opd::create([
+        'name' => 'Dinas Pengujian Interval',
+    ]);
+
+    foreach ([1, 5, 10, 30] as $interval) {
+        $this->postJson(
+            "/api/opds/{$opd->id}/websites",
+            [
+                'name' => "Website Interval {$interval}",
+                'url' => "https://interval-{$interval}.example.com",
+                'monitoring_interval_minutes' => $interval,
+            ]
+        )
+            ->assertCreated()
+            ->assertJsonPath(
+                'data.monitoring_interval_minutes',
+                $interval
+            );
+    }
+}
+
+public function test_updating_monitoring_interval_reschedules_next_scan(): void
+{
+    $this->loginAsAdmin();
+
+    $now = now()->startOfMinute();
+    $this->travelTo($now);
+
+    $opd = Opd::create([
+        'name' => 'Dinas Pengujian Jadwal',
+    ]);
+
+    $website = $opd->websites()->create([
+        'name' => 'Website Jadwal',
+        'url' => 'https://schedule-test.example.com',
+        'is_active' => true,
+        'monitoring_enabled' => true,
+        'monitoring_interval_minutes' => 10,
+    ]);
+
+    $website->forceFill([
+        'next_scan_at' => $now->copy()->addMinutes(10),
+    ])->save();
+
+    // Ubah interval menjadi 5 menit.
+    $this->patchJson("/api/websites/{$website->id}", [
+        'monitoring_interval_minutes' => 5,
+    ])
+        ->assertOk()
+        ->assertJsonPath('data.monitoring_interval_minutes', 5);
+
+    $this->assertTrue(
+        $website->fresh()->next_scan_at->equalTo(
+            $now->copy()->addMinutes(5)
+        )
+    );
+
+    // Nonaktifkan monitoring.
+    $this->patchJson("/api/websites/{$website->id}", [
+        'monitoring_enabled' => false,
+    ])->assertOk();
+
+    $this->assertNull(
+        $website->fresh()->next_scan_at
+    );
+
+    // Aktifkan kembali monitoring.
+    $this->patchJson("/api/websites/{$website->id}", [
+        'monitoring_enabled' => true,
+    ])->assertOk();
+
+    $this->assertTrue(
+        $website->fresh()->next_scan_at->equalTo(
+            $now->copy()->addMinutes(5)
+        )
+    );
+
+    $this->travelBack();
+}
+
 }

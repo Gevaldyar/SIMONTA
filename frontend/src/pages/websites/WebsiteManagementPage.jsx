@@ -10,7 +10,7 @@ const EMPTY_FORM = {
   description: '',
   is_active: true,
   monitoring_enabled: true,
-  monitoring_interval_minutes: 60,
+  monitoring_interval_minutes: 10,
 }
 
 function Icon({ name, size = 17 }) {
@@ -344,7 +344,7 @@ function WebsiteManagementPage() {
       is_active: Boolean(website.is_active),
       monitoring_enabled: Boolean(website.monitoring_enabled),
       monitoring_interval_minutes: Number(
-        website.monitoring_interval_minutes || 60
+        website.monitoring_interval_minutes || 10
       ),
     })
 
@@ -860,9 +860,7 @@ function WebsiteManagementPage() {
 
                     <td className="px-5 py-5 text-center">
                       <span className="font-serif text-lg text-[#252B37]">
-                        {website.monitoring_interval_minutes >= 60
-                          ? `${website.monitoring_interval_minutes / 60}h`
-                          : `${website.monitoring_interval_minutes}m`}
+                        {website.monitoring_interval_minutes} min
                       </span>
                     </td>
 
@@ -962,7 +960,7 @@ function WebsiteManagementPage() {
                     </p>
 
                     <p className="mt-1 font-serif text-xl text-[#252B37]">
-                      {website.monitoring_interval_minutes / 60} hours
+                      {website.monitoring_interval_minutes} minutes
                     </p>
                   </div>
 
@@ -1209,16 +1207,14 @@ function WebsiteManagementPage() {
                     error={validationErrors.monitoring_interval_minutes?.[0]}
                     disabled={!form.monitoring_enabled}
                   >
-                    <option value="60">Every 1 hour</option>
-                    <option value="120">Every 2 hours</option>
-                    <option value="180">Every 3 hours</option>
-                    <option value="360">Every 6 hours</option>
-                    <option value="720">Every 12 hours</option>
-                    <option value="1440">Every 24 hours</option>
+                    <option value="1">Every 1 minute</option>
+                    <option value="5">Every 5 minutes</option>
+                    <option value="10">Every 10 minutes</option>
+                    <option value="30">Every 30 minutes</option>
                   </SelectField>
 
                   <p className="mt-1.5 text-[10px] text-[#817A70]">
-                    Interval minimum 60 menit dan maksimum 24 jam.
+                    Pilih interval pemeriksaan otomatis: 1, 5, 10, atau 30 menit.
                     Jika monitoring dinonaktifkan, Scheduler akan melewati website ini.
                   </p>
                 </div>

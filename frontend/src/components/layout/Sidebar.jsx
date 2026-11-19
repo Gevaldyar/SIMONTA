@@ -254,7 +254,7 @@ function Sidebar({
 
           <div className="mt-3 border border-[#51483B] bg-[#252B37]/60 p-3">
             <p className="font-serif text-2xl text-[#EEE9DD]">
-              01 <span className="text-[#B69A69]">HOUR</span>
+              10 <span className="text-[#B69A69]">MIN</span>
             </p>
 
             <p className="mt-1 text-[10px] tracking-wider text-[#A9A8A3]">
@@ -278,9 +278,9 @@ function Sidebar({
 
             <span
               className="font-serif text-[9px] tracking-widest text-[#B69A69]"
-              title="Default monitoring interval: 60 minutes"
+              title="Default monitoring interval: 10 minutes"
             >
-              60M
+              10M
             </span>
           </div>
         )}

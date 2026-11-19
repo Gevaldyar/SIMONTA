@@ -120,19 +120,49 @@ class WebsiteController extends Controller
     /**
      * Memperbarui data website.
      */
-    public function update(
-        UpdateWebsiteRequest $request,
-        Website $website
-    ): JsonResponse {
-        $website->update($request->validated());
+    
+public function update(
+    UpdateWebsiteRequest $request,
+    Website $website
+): JsonResponse {
+    $previousInterval = (int) $website->monitoring_interval_minutes;
+    $wasMonitoringEnabled = (bool) $website->monitoring_enabled;
+    $wasActive = (bool) $website->is_active;
 
-        return response()->json([
-            'message' => 'Website berhasil diperbarui.',
-            'data' => $website->fresh()
-                ->load('opd:id,name')
-                ->loadCount('scans'),
-        ]);
+    $website->update($request->validated());
+
+    $isMonitoringEligible = $website->is_active
+        && $website->monitoring_enabled;
+
+    if (! $isMonitoringEligible) {
+        // Website tidak aktif atau monitoring dinonaktifkan.
+        // Hapus jadwal berikutnya agar tidak ada jadwal kedaluwarsa
+        // yang langsung dijalankan saat monitoring diaktifkan kembali.
+        $website->forceFill([
+            'next_scan_at' => null,
+        ])->save();
+    } elseif (
+        $previousInterval !== (int) $website->monitoring_interval_minutes
+        || ! $wasMonitoringEnabled
+        || ! $wasActive
+    ) {
+        // Interval berubah atau monitoring baru saja diaktifkan.
+        // Jadwalkan pemeriksaan berikutnya berdasarkan konfigurasi baru.
+        $website->forceFill([
+            'next_scan_at' => now()->addMinutes(
+                (int) $website->monitoring_interval_minutes
+            ),
+        ])->save();
     }
+
+    return response()->json([
+        'message' => 'Website berhasil diperbarui.',
+        'data' => $website->fresh()
+            ->load('opd:id,name')
+            ->loadCount('scans'),
+    ]);
+}
+
 
     /**
      * Menghapus website menggunakan soft delete.

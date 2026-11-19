@@ -30,7 +30,7 @@ private function createWebsite(
         'url' => 'https://example.com',
         'is_active' => true,
         'monitoring_enabled' => true,
-        'monitoring_interval_minutes' => 60,
+        'monitoring_interval_minutes' => 10,
     ], $websiteAttributes));
 }
 
@@ -55,13 +55,20 @@ private function createWebsite(
             1
         );
 
-        // Jadwal berikutnya harus tersedia.
-        $nextScan = $website->fresh()->next_scan_at;
+        // Jadwal berikutnya harus tersedia sekitar 10 menit.
+$nextScan = $website->fresh()->next_scan_at;
 
-        $this->assertNotNull($nextScan);
-        $this->assertTrue(
-            $nextScan->isAfter(now()->addMinutes(59))
-        );
+$this->assertNotNull($nextScan);
+
+$this->assertTrue(
+    $nextScan->isAfter(now()->addMinutes(9)),
+    'Jadwal berikutnya harus menggunakan default interval 10 menit.'
+);
+
+$this->assertTrue(
+    $nextScan->isBefore(now()->addMinutes(11)),
+    'Jadwal berikutnya tidak boleh melebihi 11 menit.'
+);
     }
 
     public function test_future_scheduled_website_is_skipped(): void
@@ -139,7 +146,7 @@ private function createWebsite(
         $website = $this->createWebsite(
             [],
             [
-                'monitoring_interval_minutes' => 120,
+                'monitoring_interval_minutes' => 10,
             ]
         );
 
@@ -152,11 +159,10 @@ private function createWebsite(
 
         $nextScan = $website->fresh()->next_scan_at;
 
-        // Interval berikutnya harus 120 menit,
-        // bukan 60 menit atau lebih cepat.
-        $this->assertTrue(
-            $nextScan->isAfter(now()->addMinutes(119))
-        );
+        // Interval berikutnya harus 10 menit.
+$this->assertTrue(
+    $nextScan->isAfter(now()->addMinutes(9))
+);
 
         $this->assertDatabaseHas('scans', [
             'website_id' => $website->id,
@@ -168,4 +174,56 @@ private function createWebsite(
             1
         );
     }
+
+public function test_scheduler_respects_all_supported_minute_intervals(): void
+{
+    Queue::fake();
+
+    $baseTime = now()->startOfMinute();
+
+    $this->travelTo($baseTime);
+
+    $intervals = [1, 5, 10, 30];
+    $websites = [];
+
+    foreach ($intervals as $interval) {
+        $website = $this->createWebsite(
+            [],
+            [
+                'url' => "https://interval-{$interval}.example.com",
+                'monitoring_interval_minutes' => $interval,
+            ]
+        );
+
+        $website->forceFill([
+            'next_scan_at' => $baseTime->copy()->subMinute(),
+        ])->save();
+
+        $websites[$interval] = $website;
+    }
+
+    $this->artisan('simonta:dispatch-scheduled-scans')
+        ->assertExitCode(0);
+
+    foreach ($websites as $interval => $website) {
+        $expectedTime = $baseTime
+            ->copy()
+            ->addMinutes($interval);
+
+        $this->assertTrue(
+            $website->fresh()->next_scan_at->equalTo($expectedTime),
+            "Interval {$interval} menit tidak diterapkan dengan benar."
+        );
+
+        $this->assertDatabaseHas('scans', [
+            'website_id' => $website->id,
+            'status' => 'queued',
+        ]);
+    }
+
+    Queue::assertPushed(RunWebsiteScanJob::class, 4);
+
+    $this->travelBack();
+}
+
 }

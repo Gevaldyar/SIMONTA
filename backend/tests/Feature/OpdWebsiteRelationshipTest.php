@@ -35,13 +35,13 @@ class OpdWebsiteRelationshipTest extends TestCase
 
         // Memastikan nilai default tersedia pada objek model.
         $this->assertSame(
-            60,
+            10,
             $website1->monitoring_interval_minutes
         );
 
-        // Memastikan nilai 60 benar-benar tersimpan di database.
+        // Memastikan nilai 10 benar-benar tersimpan di database.
         $this->assertSame(
-            60,
+            10,
             $website1->fresh()->monitoring_interval_minutes
         );
     }
