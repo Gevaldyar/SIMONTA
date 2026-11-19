@@ -208,50 +208,70 @@ class PublicUrlValidator
         return array_values(array_unique($addresses));
     }
 
-    /**
-     * Menentukan apakah IP termasuk alamat publik.
-     */
-    private function isPublicIp(string $ip): bool
-    {
-        $flags =
-            FILTER_FLAG_NO_PRIV_RANGE
-            | FILTER_FLAG_NO_RES_RANGE;
+    
+/**
+ * Menentukan apakah IP merupakan alamat global yang aman digunakan.
+ */
+private function isPublicIp(string $ip): bool
+{
+    $flags =
+        FILTER_FLAG_GLOBAL_RANGE
+        | FILTER_FLAG_NO_PRIV_RANGE
+        | FILTER_FLAG_NO_RES_RANGE;
 
-        if (
-            filter_var(
-                $ip,
-                FILTER_VALIDATE_IP,
-                $flags
-            ) === false
-        ) {
-            return false;
-        }
-
-        $packed = @inet_pton($ip);
-
-        if ($packed === false) {
-            return false;
-        }
-
-        // Menolak IPv4-mapped IPv6.
-        if (
-            strlen($packed) === 16
-            && substr($packed, 0, 10) === str_repeat("\0", 10)
-            && substr($packed, 10, 2) === "\xff\xff"
-        ) {
-            return false;
-        }
-
-        // Menolak Carrier-Grade NAT: 100.64.0.0/10.
-        if (
-            strlen($packed) === 4
-            && $this->isInCidr($ip, '100.64.0.0/10')
-        ) {
-            return false;
-        }
-
-        return true;
+    if (
+        filter_var(
+            $ip,
+            FILTER_VALIDATE_IP,
+            $flags
+        ) === false
+    ) {
+        return false;
     }
+
+    $packed = @inet_pton($ip);
+
+    if ($packed === false) {
+        return false;
+    }
+
+    // Tolak IPv4-mapped IPv6.
+    if (
+        strlen($packed) === 16
+        && substr($packed, 0, 10) === str_repeat("\0", 10)
+        && substr($packed, 10, 2) === "\xff\xff"
+    ) {
+        return false;
+    }
+
+    // Tolak seluruh IPv4 multicast: 224.0.0.0/4.
+    if (
+        strlen($packed) === 4
+        && $this->isInCidr($ip, '224.0.0.0/4')
+    ) {
+        return false;
+    }
+
+    // Tolak seluruh IPv6 multicast: ff00::/8.
+    if (
+        strlen($packed) === 16
+        && $this->isInCidr($ip, 'ff00::/8')
+    ) {
+        return false;
+    }
+
+    // Tolak Carrier-Grade NAT: 100.64.0.0/10.
+    if (
+        strlen($packed) === 4
+        && $this->isInCidr($ip, '100.64.0.0/10')
+    ) {
+        return false;
+    }
+
+    return true;
+}
+
+
 
     /**
      * Memeriksa apakah alamat IP berada dalam CIDR tertentu.

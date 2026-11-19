@@ -4,21 +4,21 @@ namespace App\Jobs;
 
 use App\Models\Scan;
 use App\Services\WebsiteScanService;
+use App\Services\ScanNotificationService;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
+use Illuminate\Queue\Attributes\Timeout;
+use Illuminate\Queue\Attributes\FailOnTimeout;
 use Throwable;
 
-use App\Services\ScanNotificationService;
-
+#[Timeout(45)]
+#[FailOnTimeout]
 class RunWebsiteScanJob implements ShouldQueue
 {
     use Queueable;
 
+    // Hanya satu kali percobaan.
     public int $tries = 1;
-
-    public int $timeout = 45;
-
-    public bool $failOnTimeout = true;
 
     public function __construct(
         public int $scanId
@@ -32,8 +32,8 @@ class RunWebsiteScanJob implements ShouldQueue
     ): void {
         $scan = Scan::find($this->scanId);
 
-        // Abaikan job jika scan tidak tersedia atau
-        // sudah tidak berada dalam antrean.
+        // Abaikan job jika scan sudah tidak tersedia
+        // atau tidak lagi menunggu diproses.
         if (!$scan || $scan->status !== 'queued') {
             return;
         }
@@ -48,25 +48,38 @@ class RunWebsiteScanJob implements ShouldQueue
     {
         report($exception);
 
-        $scan = Scan::find($this->scanId);
+        /*
+         * Ubah status hanya jika masih queued atau running.
+         * Conditional update mencegah callback terlambat
+         * mengubah scan yang sudah completed.
+         */
+        $affected = Scan::query()
+            ->whereKey($this->scanId)
+            ->whereIn('status', ['queued', 'running'])
+            ->update([
+                'status' => 'failed',
+                'completed_at' => now(),
+                'error_message' => substr(
+                    $exception->getMessage(),
+                    0,
+                    1000
+                ),
+                'updated_at' => now(),
+            ]);
 
-        if (
-            !$scan
-            || !in_array($scan->status, ['queued', 'running'], true)
-        ) {
+        // Scan sudah selesai, gagal, atau tidak ditemukan.
+        if ($affected !== 1) {
             return;
         }
 
-        $scan->forceFill([
-            'status' => 'failed',
-            'completed_at' => now(),
-            'error_message' => substr(
-                $exception->getMessage(),
-                0,
-                1000
-            ),
-        ])->save();
+        $scan = Scan::find($this->scanId);
+
+        if (!$scan) {
+            return;
+        }
+
+        // Kirim notifikasi kegagalan.
         app(ScanNotificationService::class)
-    ->notifyForScan($scan->fresh());
+            ->notifyForScan($scan);
     }
 }

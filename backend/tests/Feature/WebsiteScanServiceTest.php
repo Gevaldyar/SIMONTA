@@ -274,4 +274,156 @@ class WebsiteScanServiceTest extends TestCase
             $scan->scanTechnologies
         );
     }
+
+    public function test_same_scan_cannot_be_processed_twice(): void
+    {
+        $opd = Opd::create([
+            'name' => 'Dinas Pengujian',
+        ]);
+
+        $website = $opd->websites()->create([
+            'name' => 'Website Utama',
+            'url' => 'https://example.com',
+        ]);
+
+        $scan = $website->scans()->create([
+            'status' => 'queued',
+            'scheduled_for' => now(),
+        ]);
+
+        // Hanya tersedia satu respons HTTP.
+        $inspector = $this->fakeInspector([
+            [
+                'status_code' => 200,
+                'headers' => [
+                    'content-type' => ['text/html'],
+                ],
+                'body' => '<html><title>Website Utama</title></html>',
+            ],
+        ]);
+
+        $this->app->instance(
+            HttpInspector::class,
+            $inspector
+        );
+
+        $service = app(WebsiteScanService::class);
+
+        $firstResult = $service->process($scan);
+
+        $secondResult = $service->process(
+            $scan->fresh()
+        );
+
+        // Pemrosesan pertama berhasil.
+        $this->assertSame(
+            'completed',
+            $firstResult->status
+        );
+
+        // Pemrosesan kedua tidak mengulangi HTTP request.
+        $this->assertSame(
+            'completed',
+            $secondResult->status
+        );
+
+        $this->assertSame(
+            1,
+            $website->scans()->count()
+        );
+    }
+
+    public function test_queued_scan_is_rejected_when_website_becomes_inactive(): void
+    {
+        $opd = Opd::create([
+            'name' => 'Dinas Pengujian',
+        ]);
+
+        $website = $opd->websites()->create([
+            'name' => 'Website Nonaktif',
+            'url' => 'https://example.com',
+        ]);
+
+        $scan = $website->scans()->create([
+            'status' => 'queued',
+            'scheduled_for' => now(),
+        ]);
+
+        // Website dinonaktifkan setelah job masuk antrean.
+        $website->forceFill([
+            'is_active' => false,
+        ])->save();
+
+        // Tidak menyediakan respons HTTP.
+        $inspector = $this->fakeInspector([]);
+
+        $this->app->instance(
+            HttpInspector::class,
+            $inspector
+        );
+
+        $result = app(WebsiteScanService::class)
+            ->process($scan);
+
+        $this->assertSame('failed', $result->status);
+
+        $this->assertNotNull($result->completed_at);
+
+        $this->assertStringContainsString(
+            'tidak aktif',
+            $result->error_message
+        );
+
+        $this->assertSame(
+            0,
+            $result->scanTechnologies()->count()
+        );
+    }
+
+    public function test_queued_scan_is_rejected_when_opd_becomes_inactive(): void
+    {
+        $opd = Opd::create([
+            'name' => 'Dinas Pengujian',
+        ]);
+
+        $website = $opd->websites()->create([
+            'name' => 'Website OPD',
+            'url' => 'https://example.com',
+        ]);
+
+        $scan = $website->scans()->create([
+            'status' => 'queued',
+            'scheduled_for' => now(),
+        ]);
+
+        // OPD dinonaktifkan setelah job masuk antrean.
+        $opd->forceFill([
+            'is_active' => false,
+        ])->save();
+
+        $inspector = $this->fakeInspector([]);
+
+        $this->app->instance(
+            HttpInspector::class,
+            $inspector
+        );
+
+        $result = app(WebsiteScanService::class)
+            ->process($scan);
+
+        $this->assertSame('failed', $result->status);
+
+        $this->assertNotNull($result->completed_at);
+
+        $this->assertStringContainsString(
+            'tidak aktif',
+            $result->error_message
+        );
+
+        $this->assertSame(
+            0,
+            $result->scanTechnologies()->count()
+        );
+    }
+
 }

@@ -474,4 +474,103 @@ public function test_removed_and_version_changed_technologies_generate_notificat
     );
 }
 
+public function test_running_scan_is_marked_failed_when_queue_job_fails(): void
+{
+    $user = User::factory()->create();
+
+    $website = $this->createTestWebsite();
+
+    // Simulasikan scan yang sudah mulai diproses.
+    $scan = $website->scans()->create([
+        'status' => 'running',
+        'scheduled_for' => now()->subMinute(),
+        'started_at' => now()->subSeconds(30),
+    ]);
+
+    $job = new RunWebsiteScanJob($scan->id);
+
+    $exception = new RuntimeException(
+        'Queue worker timeout during website scan.'
+    );
+
+    // Simulasikan callback kegagalan Laravel.
+    $job->failed($exception);
+
+    $scan->refresh();
+
+    $this->assertSame('failed', $scan->status);
+
+    $this->assertNotNull($scan->completed_at);
+
+    $this->assertStringContainsString(
+        'Queue worker timeout',
+        $scan->error_message
+    );
+
+    // Pastikan notifikasi kegagalan dikirim.
+    $this->assertSame(
+        1,
+        $user->notifications()->count()
+    );
+
+    $notification = $user->notifications()->firstOrFail();
+
+    $this->assertSame(
+        'scan_failed',
+        $notification->data['type']
+    );
+
+    // Callback kedua tidak boleh menggandakan notifikasi.
+    $job->failed($exception);
+
+    $this->assertSame(
+        1,
+        $user->notifications()->count()
+    );
+}
+
+public function test_failed_callback_does_not_override_completed_scan(): void
+{
+    $user = User::factory()->create();
+
+    $website = $this->createTestWebsite();
+
+    $scan = $website->scans()->create([
+        'status' => 'completed',
+        'scheduled_for' => now()->subMinute(),
+        'started_at' => now()->subSeconds(30),
+        'completed_at' => now(),
+        'http_status_code' => 200,
+    ]);
+
+    $originalCompletedAt = $scan->completed_at;
+
+    $job = new RunWebsiteScanJob($scan->id);
+
+    $job->failed(
+        new RuntimeException('Late queue failure callback.')
+    );
+
+    $scan->refresh();
+
+    // Hasil scan yang sudah selesai harus tetap utuh.
+    $this->assertSame('completed', $scan->status);
+
+    $this->assertSame(
+        200,
+        $scan->http_status_code
+    );
+
+    $this->assertEquals(
+        $originalCompletedAt,
+        $scan->completed_at
+    );
+
+    // Tidak boleh ada notifikasi kegagalan palsu.
+    $this->assertSame(
+        0,
+        $user->notifications()->count()
+    );
+}
+
 }

@@ -131,4 +131,90 @@ class PublicUrlValidatorTest extends TestCase
             $result['addresses']
         );
     }
+
+public function test_public_ipv6_address_is_allowed(): void
+{
+    $validator = new PublicUrlValidator();
+
+    $result = $validator->validate(
+        'https://[2606:4700:4700::1111]'
+    );
+
+    $this->assertSame('https', $result['scheme']);
+
+    $this->assertSame(
+        '2606:4700:4700::1111',
+        $result['host']
+    );
+
+    $this->assertSame(
+        ['2606:4700:4700::1111'],
+        $result['addresses']
+    );
+}
+
+public function test_non_global_special_purpose_addresses_are_rejected(): void
+{
+    $validator = new PublicUrlValidator();
+
+    $addresses = [
+        // Carrier-grade NAT.
+        '100.64.0.1',
+
+        // IPv4 documentation ranges.
+        '192.0.2.1',
+        '198.51.100.1',
+        '203.0.113.1',
+
+        // Benchmarking and special addresses.
+        '198.18.0.1',
+        '224.0.0.1',
+        '240.0.0.1',
+
+        // IPv6 documentation.
+        '2001:db8::1',
+        
+        '239.255.255.255',
+
+
+        // IPv6 unique-local and link-local.
+        'fc00::1',
+        'fe80::1',
+
+        'ff02::1',
+    ];
+
+    foreach ($addresses as $ip) {
+        $host = str_contains($ip, ':')
+            ? '[' . $ip . ']'
+            : $ip;
+
+        try {
+            $validator->validate('https://' . $host);
+
+            $this->fail(
+                "Alamat IP {$ip} seharusnya ditolak."
+            );
+        } catch (InvalidArgumentException $exception) {
+            $this->assertStringContainsString(
+                'privat atau tidak aman',
+                $exception->getMessage()
+            );
+        }
+    }
+}
+
+public function test_ipv4_mapped_ipv6_is_rejected(): void
+{
+    $validator = new PublicUrlValidator();
+
+    $this->expectException(
+        InvalidArgumentException::class
+    );
+
+    $validator->validate(
+        'https://[::ffff:8.8.8.8]'
+    );
+}
+
 }
