@@ -39,6 +39,11 @@ const navigationGroups = [
         icon: 'overview',
       },
       {
+  label: 'Technology Changes',
+  path: '/technology-changes',
+  icon: 'changes',
+},
+      {
         label: 'Inspection History',
         path: '/history',
         icon: 'history',
@@ -46,15 +51,20 @@ const navigationGroups = [
     ],
   },
   {
-    title: 'SYSTEM',
-    items: [
-      {
-        label: 'Settings',
-        path: '/settings',
-        icon: 'settings',
-      },
-    ],
-  },
+  title: 'SYSTEM',
+  items: [
+    {
+      label: 'Reports',
+      path: '/reports',
+      icon: 'reports',
+    },
+    {
+      label: 'Settings',
+      path: '/settings',
+      icon: 'settings',
+    },
+  ],
+},
 ]
 
 function Sidebar({

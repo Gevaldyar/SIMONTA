@@ -3,415 +3,321 @@
 namespace Tests\Feature;
 
 use App\Models\Opd;
-use App\Models\Technology;
 use App\Models\Scan;
-use App\Services\TechnologyDetectionService;
+use App\Models\ScanTechnology;
+use App\Models\Technology;
+use App\Models\TechnologyChange;
+use App\Models\Website;
+use App\Services\TechnologyChangeDetectionService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
-class TechnologyDetectionServiceTest extends TestCase
-{
+class TechnologyDetectionServiceTest extends TestCase{
     use RefreshDatabase;
 
-    public function test_engine_detects_multiple_technologies(): void
-    {
-        // Membuat OPD dan website.
-        $opd = Opd::create([
-            'name' => 'Dinas Contoh',
-        ]);
-
-        $website = $opd->websites()->create([
-            'name' => 'Website Utama',
-            'url' => 'https://example.com',
-        ]);
-
-        // Membuat riwayat pemeriksaan.
-        $scan = $website->scans()->create([
-            'status' => 'completed',
-            'http_status_code' => 200,
-            'response_time_ms' => 250,
-        ]);
-
-        // =====================================
-        // 1. Teknologi PHP
-        // =====================================
-
-        $php = Technology::create([
-            'name' => 'PHP',
-            'slug' => 'php',
-            'category' => 'backend_language',
-            'vendor' => 'PHP Group',
-            'is_active' => true,
-        ]);
-
-        // Signature melalui HTTP header.
-        $php->signatures()->create([
-            'name' => 'PHP Header Detection',
-            'type' => 'header',
-            'target' => 'x-powered-by',
-            'pattern' => 'PHP/',
-            'match_type' => 'contains',
-            'version_pattern' => '/PHP\/([0-9.]+)/i',
-            'confidence' => 90,
-            'is_active' => true,
-        ]);
-
-        // Signature kedua melalui cookie.
-        $php->signatures()->create([
-            'name' => 'PHP Session Cookie Detection',
-            'type' => 'cookie',
-            'pattern' => 'PHPSESSID',
-            'match_type' => 'contains',
-            'confidence' => 70,
-            'is_active' => true,
-        ]);
-
-        // =====================================
-        // 2. Teknologi WordPress
-        // =====================================
-
-        $wordpress = Technology::create([
-            'name' => 'WordPress',
-            'slug' => 'wordpress',
-            'category' => 'cms',
-            'vendor' => 'WordPress Foundation',
-            'is_active' => true,
-        ]);
-
-        $wordpress->signatures()->create([
-            'name' => 'WordPress Generator Meta',
-            'type' => 'meta',
-            'target' => 'generator',
-            'pattern' => 'WordPress',
-            'match_type' => 'contains',
-            'version_pattern' => '/WordPress\s+([0-9.]+)/i',
-            'confidence' => 95,
-            'is_active' => true,
-        ]);
-
-        // =====================================
-        // 3. Simulasi fingerprint website
-        // =====================================
-
-        $fingerprint = [
-            'url' => 'https://example.com',
-
-            'headers' => [
-                'X-Powered-By' => 'PHP/8.3.2',
-                'Server' => 'nginx',
-            ],
-
-            'html' => '<html><head></head></html>',
-
-            'scripts' => [
-                '/assets/app.js',
-            ],
-
-            'meta' => [
-                [
-                    'name' => 'generator',
-                    'content' => 'WordPress 6.6.1',
-                ],
-            ],
-
-            'cookies' => [
-                'PHPSESSID' => 'private-session-value',
-            ],
-        ];
-
-        // =====================================
-        // 4. Jalankan detection engine
-        // =====================================
-
-        $service = app(TechnologyDetectionService::class);
-
-        $results = $service->detect($scan, $fingerprint);
-
-        // Dua teknologi berbeda ditemukan.
-        $this->assertCount(2, $results);
-
-        $phpResult = $results->firstWhere(
-            'technology_id',
-            $php->id
-        );
-
-        $wordpressResult = $results->firstWhere(
-            'technology_id',
-            $wordpress->id
-        );
-
-        // PHP berhasil dikenali.
-        $this->assertNotNull($phpResult);
-        $this->assertSame('8.3.2', $phpResult->version);
-        $this->assertSame(90, $phpResult->confidence);
-
-        // Dua signature PHP berhasil digabung.
-        $this->assertCount(2, $phpResult->evidence);
-
-        // WordPress berhasil dikenali.
-        $this->assertNotNull($wordpressResult);
-        $this->assertSame('6.6.1', $wordpressResult->version);
-        $this->assertSame(95, $wordpressResult->confidence);
-
-        // Informasi rahasia cookie tidak disimpan.
-        $this->assertStringNotContainsString(
-            'private-session-value',
-            json_encode($phpResult->evidence)
-        );
-
-        // Data hasil identifikasi benar-benar tersimpan.
-        $this->assertSame(
-            2,
-            $scan->scanTechnologies()->count()
-        );
-    }
-
-    public function test_running_detection_again_replaces_previous_results(): void
+    private function createWebsite(): Website
     {
         $opd = Opd::create([
             'name' => 'Dinas Pengujian',
         ]);
 
-        $website = $opd->websites()->create([
+        return $opd->websites()->create([
             'name' => 'Website Pengujian',
             'url' => 'https://example.com',
         ]);
-
-        $scan = $website->scans()->create([
-            'status' => 'completed',
-        ]);
-
-        $php = Technology::create([
-            'name' => 'PHP',
-            'slug' => 'php',
-            'category' => 'backend_language',
-            'is_active' => true,
-        ]);
-
-        $php->signatures()->create([
-            'name' => 'PHP Header',
-            'type' => 'header',
-            'target' => 'x-powered-by',
-            'pattern' => 'PHP/',
-            'match_type' => 'contains',
-            'version_pattern' => '/PHP\/([0-9.]+)/i',
-            'confidence' => 90,
-            'is_active' => true,
-        ]);
-
-        $service = app(TechnologyDetectionService::class);
-
-        // Pemeriksaan pertama menemukan PHP.
-        $service->detect($scan, [
-            'headers' => [
-                'X-Powered-By' => 'PHP/8.3.2',
-            ],
-        ]);
-
-        $this->assertSame(
-            1,
-            $scan->scanTechnologies()->count()
-        );
-
-        // Pemeriksaan kedua tidak menemukan teknologi.
-        $service->detect($scan, []);
-
-        // Hasil lama harus diganti.
-        $this->assertSame(
-            0,
-            $scan->scanTechnologies()->count()
-        );
     }
 
-public function test_engine_detects_nextjs_from_static_asset_reference(): void
-{
-    $this->seed(\Database\Seeders\TechnologyCatalogSeeder::class);
+    private function createTechnology(string $name, string $slug): Technology
+    {
+        return Technology::create([
+            'name' => $name,
+            'slug' => $slug,
+            'category' => 'backend_framework',
+            'vendor' => 'Test Vendor',
+            'is_active' => true,
+        ]);
+    }
 
-    $nextJs = Technology::where('slug', 'nextjs')->firstOrFail();
+    private function createScan(
+        Website $website,
+        string $startedAt,
+        string $completedAt,
+        int $httpStatus = 200,
+        string $status = 'completed'
+    ): Scan {
+        return Scan::create([
+            'website_id' => $website->id,
+            'status' => $status,
+            'started_at' => $startedAt,
+            'completed_at' => $completedAt,
+            'http_status_code' => $httpStatus,
+            'final_url' => $website->url,
+        ]);
+    }
 
-    $opd = Opd::create([
-        'name' => 'Dinas Pengujian Next.js',
-    ]);
+    private function addDetection(
+        Scan $scan,
+        Technology $technology,
+        ?string $version = null,
+        int $confidence = 95,
+        array $evidence = []
+    ): ScanTechnology {
+        return ScanTechnology::create([
+            'scan_id' => $scan->id,
+            'technology_id' => $technology->id,
+            'version' => $version,
+            'confidence' => $confidence,
+            'evidence' => $evidence ?: [
+                'type' => 'test',
+                'matched' => $technology->slug,
+            ],
+        ]);
+    }
 
-    $website = $opd->websites()->create([
-        'name' => 'Website Next.js',
-        'url' => 'https://example.com',
-    ]);
+    public function test_first_successful_scan_becomes_baseline_without_creating_changes(): void
+    {
+        $website = $this->createWebsite();
+        $php = $this->createTechnology('PHP', 'php');
 
-    $scan = $website->scans()->create([
-        'status' => 'completed',
-        'http_status_code' => 200,
-    ]);
+        $firstScan = $this->createScan(
+            $website,
+            '2026-11-18 09:00:00',
+            '2026-11-18 09:00:05'
+        );
 
-    // Simulasi HTML yang ditemukan pada website Diskominfo.
-    $fingerprint = [
-        'html' => '<html>
-            <head>
-                <script src="/_next/static/chunks/app.js" async></script>
-                <script src="/_next/static/chunks/webpack.js"></script>
-            </head>
-            <body>
-                <h1>Website Next.js</h1>
-            </body>
-        </html>',
-    ];
+        $this->addDetection($firstScan, $php, '8.3.2');
 
-    $results = app(TechnologyDetectionService::class)
-        ->detect($scan, $fingerprint);
+        $changes = app(TechnologyChangeDetectionService::class)
+            ->record($firstScan);
 
-    $nextJsResult = $results->firstWhere(
-        'technology_id',
-        $nextJs->id
-    );
+        $this->assertCount(0, $changes);
+        $this->assertDatabaseCount('technology_changes', 0);
+    }
 
-    $this->assertNotNull($nextJsResult);
-    $this->assertSame(95, $nextJsResult->confidence);
-    $this->assertSame(
-        'Next.js Static Asset Reference',
-        $nextJsResult->evidence[0]['signature_name']
-    );
-    $this->assertNull($nextJsResult->version);
-    $this->assertSame(1, $scan->scanTechnologies()->count());
-}
+    public function test_new_technology_is_recorded_as_added(): void
+    {
+        $website = $this->createWebsite();
+        $php = $this->createTechnology('PHP', 'php');
+        $laravel = $this->createTechnology('Laravel', 'laravel');
 
-public function test_engine_does_not_detect_nextjs_from_plain_text_marker(): void
-{
-    $this->seed(\Database\Seeders\TechnologyCatalogSeeder::class);
+        $previousScan = $this->createScan(
+            $website,
+            '2026-11-18 09:00:00',
+            '2026-11-18 09:00:05'
+        );
+        $this->addDetection($previousScan, $php, '8.3.2');
 
-    $nextJs = Technology::where('slug', 'nextjs')->firstOrFail();
+        $currentScan = $this->createScan(
+            $website,
+            '2026-11-18 10:00:00',
+            '2026-11-18 10:00:05'
+        );
+        $this->addDetection($currentScan, $php, '8.3.2');
+        $currentDetection = $this->addDetection(
+            $currentScan,
+            $laravel,
+            '13.0.0',
+            95,
+            ['type' => 'cookie', 'matched' => 'laravel_session']
+        );
 
-    $opd = Opd::create([
-        'name' => 'Dinas Pengujian Negatif',
-    ]);
+        $changes = app(TechnologyChangeDetectionService::class)
+            ->record($currentScan);
 
-    $website = $opd->websites()->create([
-        'name' => 'Website HTML Biasa',
-        'url' => 'https://example.com',
-    ]);
+        $this->assertCount(1, $changes);
 
-    $scan = $website->scans()->create([
-        'status' => 'completed',
-        'http_status_code' => 200,
-    ]);
+        $change = $changes->first();
+        $this->assertSame('added', $change->change_type);
+        $this->assertSame($laravel->id, $change->technology_id);
+        $this->assertSame($previousScan->id, $change->previous_scan_id);
+        $this->assertNull($change->previous_version);
+        $this->assertSame('13.0.0', $change->current_version);
+        $this->assertSame($currentDetection->evidence, $change->current_evidence);
+    }
 
-    // Marker hanya ada sebagai teks biasa, bukan atribut src atau href.
-    $fingerprint = [
-        'html' => '<html>
-            <body>
-                Dokumentasi ini menyebut
-                /_next/static/chunks/app.js
-                sebagai contoh path.
-            </body>
-        </html>',
-    ];
+    public function test_missing_technology_is_recorded_as_removed(): void
+    {
+        $website = $this->createWebsite();
+        $php = $this->createTechnology('PHP', 'php');
+        $laravel = $this->createTechnology('Laravel', 'laravel');
 
-    $results = app(TechnologyDetectionService::class)
-        ->detect($scan, $fingerprint);
+        $previousScan = $this->createScan(
+            $website,
+            '2026-11-18 09:00:00',
+            '2026-11-18 09:00:05'
+        );
+        $this->addDetection($previousScan, $php, '8.3.2');
+        $previousDetection = $this->addDetection(
+            $previousScan,
+            $laravel,
+            '13.0.0',
+            95,
+            ['type' => 'cookie', 'matched' => 'laravel_session']
+        );
 
-    $nextJsResult = $results->firstWhere(
-        'technology_id',
-        $nextJs->id
-    );
+        $currentScan = $this->createScan(
+            $website,
+            '2026-11-18 10:00:00',
+            '2026-11-18 10:00:05'
+        );
+        $this->addDetection($currentScan, $php, '8.3.2');
 
-    $this->assertNull($nextJsResult);
-    $this->assertSame(0, $scan->scanTechnologies()->count());
-}
+        $changes = app(TechnologyChangeDetectionService::class)
+            ->record($currentScan);
 
-public function test_engine_detects_nuxt_sveltekit_and_astro(): void
-{
-    $this->seed(
-        \Database\Seeders\TechnologyCatalogSeeder::class
-    );
+        $this->assertCount(1, $changes);
 
-    $opd = Opd::create([
-        'name' => 'Dinas Pengujian Framework',
-    ]);
+        $change = $changes->first();
+        $this->assertSame('removed', $change->change_type);
+        $this->assertSame($laravel->id, $change->technology_id);
+        $this->assertSame($previousScan->id, $change->previous_scan_id);
+        $this->assertSame('13.0.0', $change->previous_version);
+        $this->assertNull($change->current_version);
+        $this->assertSame($previousDetection->evidence, $change->previous_evidence);
+    }
 
-    $website = $opd->websites()->create([
-        'name' => 'Website Framework',
-        'url' => 'https://example.com',
-    ]);
+    public function test_changed_non_empty_version_is_recorded_as_version_changed(): void
+    {
+        $website = $this->createWebsite();
+        $apache = $this->createTechnology('Apache', 'apache');
 
-    $scan = $website->scans()->create([
-        'status' => 'completed',
-        'http_status_code' => 200,
-    ]);
+        $previousScan = $this->createScan(
+            $website,
+            '2026-11-18 09:00:00',
+            '2026-11-18 09:00:05'
+        );
+        $this->addDetection($previousScan, $apache, '2.4.41');
 
-    $fingerprint = [
-        'html' => '
-            <html>
-                <head>
-                    <script src="/_nuxt/entry.js"></script>
+        $currentScan = $this->createScan(
+            $website,
+            '2026-11-18 10:00:00',
+            '2026-11-18 10:00:05'
+        );
+        $this->addDetection($currentScan, $apache, '2.4.58');
 
-                    <script src="/_app/immutable/entry/start.js"></script>
+        $changes = app(TechnologyChangeDetectionService::class)
+            ->record($currentScan);
 
-                    <link rel="stylesheet" href="/_astro/index.css">
-                </head>
-                <body>
-                    <h1>Website Framework</h1>
-                </body>
-            </html>
-        ',
-    ];
+        $this->assertCount(1, $changes);
 
-    $results = app(TechnologyDetectionService::class)
-        ->detect($scan, $fingerprint);
+        $change = $changes->first();
+        $this->assertSame('version_changed', $change->change_type);
+        $this->assertSame('2.4.41', $change->previous_version);
+        $this->assertSame('2.4.58', $change->current_version);
+        $this->assertSame($previousScan->id, $change->previous_scan_id);
+    }
 
-    $detectedSlugs = $results
-        ->map(fn ($item) => $item->technology?->slug)
-        ->filter()
-        ->all();
+    public function test_identical_detection_results_do_not_create_changes(): void
+    {
+        $website = $this->createWebsite();
+        $php = $this->createTechnology('PHP', 'php');
 
-    $this->assertEqualsCanonicalizing(
-        ['nuxt', 'sveltekit', 'astro'],
-        $detectedSlugs
-    );
+        $previousScan = $this->createScan(
+            $website,
+            '2026-11-18 09:00:00',
+            '2026-11-18 09:00:05'
+        );
+        $this->addDetection($previousScan, $php, '8.3.2');
 
-    $this->assertCount(3, $results);
-    $this->assertSame(3, $scan->scanTechnologies()->count());
-}
+        $currentScan = $this->createScan(
+            $website,
+            '2026-11-18 10:00:00',
+            '2026-11-18 10:00:05'
+        );
+        $this->addDetection($currentScan, $php, '8.3.2');
 
-public function test_engine_does_not_detect_frameworks_from_plain_text_paths(): void
-{
-    $this->seed(
-        \Database\Seeders\TechnologyCatalogSeeder::class
-    );
+        $changes = app(TechnologyChangeDetectionService::class)
+            ->record($currentScan);
 
-    $opd = Opd::create([
-        'name' => 'Dinas Pengujian False Positive',
-    ]);
+        $this->assertCount(0, $changes);
+        $this->assertDatabaseCount('technology_changes', 0);
+    }
 
-    $website = $opd->websites()->create([
-        'name' => 'Website HTML Biasa',
-        'url' => 'https://example.com',
-    ]);
+    public function test_http_404_scan_does_not_create_false_removed_changes(): void
+    {
+        $website = $this->createWebsite();
+        $php = $this->createTechnology('PHP', 'php');
 
-    $scan = $website->scans()->create([
-        'status' => 'completed',
-        'http_status_code' => 200,
-    ]);
+        $previousScan = $this->createScan(
+            $website,
+            '2026-11-18 09:00:00',
+            '2026-11-18 09:00:05'
+        );
+        $this->addDetection($previousScan, $php, '8.3.2');
 
-    $fingerprint = [
-        'html' => '
-            <html>
-                <body>
-                    Dokumentasi Nuxt menggunakan /_nuxt/entry.js.
-                    Dokumentasi SvelteKit menggunakan /_app/immutable/.
-                    Dokumentasi Astro menggunakan /_astro/index.css.
-                </body>
-            </html>
-        ',
-    ];
+        $currentScan = $this->createScan(
+            $website,
+            '2026-11-18 10:00:00',
+            '2026-11-18 10:00:05',
+            404
+        );
 
-    $results = app(TechnologyDetectionService::class)
-        ->detect($scan, $fingerprint);
+        $changes = app(TechnologyChangeDetectionService::class)
+            ->record($currentScan);
 
-    $this->assertCount(0, $results);
+        $this->assertCount(0, $changes);
+        $this->assertDatabaseCount('technology_changes', 0);
+    }
 
-    $this->assertSame(
-        0,
-        $scan->scanTechnologies()->count()
-    );
-}
+    public function test_failed_scan_does_not_create_false_removed_changes(): void
+    {
+        $website = $this->createWebsite();
+        $php = $this->createTechnology('PHP', 'php');
 
+        $previousScan = $this->createScan(
+            $website,
+            '2026-11-18 09:00:00',
+            '2026-11-18 09:00:05'
+        );
+        $this->addDetection($previousScan, $php, '8.3.2');
+
+        $currentScan = $this->createScan(
+            $website,
+            '2026-11-18 10:00:00',
+            '2026-11-18 10:00:05',
+            500,
+            'failed'
+        );
+
+        $changes = app(TechnologyChangeDetectionService::class)
+            ->record($currentScan);
+
+        $this->assertCount(0, $changes);
+        $this->assertDatabaseCount('technology_changes', 0);
+    }
+
+    public function test_recording_same_scan_twice_does_not_duplicate_changes(): void
+    {
+        $website = $this->createWebsite();
+        $php = $this->createTechnology('PHP', 'php');
+        $cloudflare = $this->createTechnology('Cloudflare', 'cloudflare');
+
+        $previousScan = $this->createScan(
+            $website,
+            '2026-11-18 09:00:00',
+            '2026-11-18 09:00:05'
+        );
+        $this->addDetection($previousScan, $php, '8.3.2');
+
+        $currentScan = $this->createScan(
+            $website,
+            '2026-11-18 10:00:00',
+            '2026-11-18 10:00:05'
+        );
+        $this->addDetection($currentScan, $php, '8.3.2');
+        $this->addDetection($currentScan, $cloudflare);
+
+        $service = app(TechnologyChangeDetectionService::class);
+
+        $firstRun = $service->record($currentScan);
+        $secondRun = $service->record($currentScan);
+
+        $this->assertCount(1, $firstRun);
+        $this->assertCount(1, $secondRun);
+        $this->assertDatabaseCount('technology_changes', 1);
+        $this->assertSame(
+            'added',
+            TechnologyChange::query()->firstOrFail()->change_type
+        );
+    }
 }

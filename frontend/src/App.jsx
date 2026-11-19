@@ -21,6 +21,7 @@ import TechnologyRegistryPage from './pages/technologies/TechnologyRegistryPage'
 import ScanHistoryPage from './pages/history/ScanHistoryPage'
 import SettingsPage from "./pages/settings/SettingsPage";
 import ReportsPage from './pages/reports/ReportsPage'
+import TechnologyChangesPage from './pages/technology-changes/TechnologyChangesPage'
 
 function App() {
   return (
@@ -62,6 +63,11 @@ function App() {
           <Route
   path="technologies"
   element={<TechnologyRegistryPage />}
+/>
+
+<Route
+  path="technology-changes"
+  element={<TechnologyChangesPage />}
 />
 
           <Route

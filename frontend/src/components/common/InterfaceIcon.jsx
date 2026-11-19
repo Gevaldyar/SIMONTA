@@ -37,6 +37,21 @@ const iconShapes = {
     </>
   ),
 
+    changes: (
+    <>
+      <path d="M4 7h15l-3-3m3 3-3 3" />
+      <path d="M20 17H5l3-3m-3 3 3 3" />
+    </>
+  ),
+
+  reports: (
+    <>
+      <path d="M6 3h9l4 4v14H6z" />
+      <path d="M15 3v5h5" />
+      <path d="M9 16v-2m3 2v-4m3 4v-6" />
+    </>
+  ),
+
   settings: (
     <>
       <circle cx="12" cy="12" r="3" />
