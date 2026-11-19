@@ -8,6 +8,8 @@ use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
 use Throwable;
 
+use App\Services\ScanNotificationService;
+
 class RunWebsiteScanJob implements ShouldQueue
 {
     use Queueable;
@@ -64,5 +66,7 @@ class RunWebsiteScanJob implements ShouldQueue
                 1000
             ),
         ])->save();
+        app(ScanNotificationService::class)
+    ->notifyForScan($scan->fresh());
     }
 }

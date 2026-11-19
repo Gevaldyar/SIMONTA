@@ -13,7 +13,9 @@ class WebsiteScanService
     public function __construct(
         private readonly HttpInspector $httpInspector,
         private readonly TechnologyDetectionService $detectionService,
-        private readonly TechnologyChangeDetectionService $changeDetectionService
+        private readonly TechnologyChangeDetectionService $changeDetectionService,
+        private readonly ScanNotificationService $notificationService
+
     ) {}
 
     /**
@@ -134,10 +136,15 @@ class WebsiteScanService
             ])->save();
         }
 
-        return $scan->fresh([
+        $scan = $scan->fresh([
             'website',
             'scanTechnologies.technology',
             'technologyChanges.technology',
         ]);
+
+        // Kirim notifikasi setelah proses scan selesai.
+        $this->notificationService->notifyForScan($scan);
+
+        return $scan;
     }
 }

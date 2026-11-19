@@ -11,6 +11,7 @@ use App\Http\Controllers\Api\DashboardController;
 use App\Http\Controllers\Api\ProfileController;
 use App\Http\Controllers\Api\ReportController;
 use App\Http\Controllers\Api\TechnologyChangeController;
+use App\Http\Controllers\Api\NotificationController;
 
 Route::middleware('auth:sanctum')->group(function () {
 
@@ -156,5 +157,34 @@ Route::put(
 );
 
 Route::get('/reports/scans/export', [ReportController::class, 'export']);
+
+// ===================================
+// NOTIFICATION CENTER
+// ===================================
+
+// Daftar notifikasi pengguna.
+Route::get(
+    '/notifications',
+    [NotificationController::class, 'index']
+);
+
+// Jumlah notifikasi belum dibaca.
+Route::get(
+    '/notifications/unread-count',
+    [NotificationController::class, 'unreadCount']
+);
+
+// Tandai semua notifikasi sudah dibaca.
+// Diletakkan sebelum parameterized route.
+Route::patch(
+    '/notifications/read-all',
+    [NotificationController::class, 'markAllAsRead']
+);
+
+// Tandai satu notifikasi sudah dibaca.
+Route::patch(
+    '/notifications/{notificationId}/read',
+    [NotificationController::class, 'markAsRead']
+);
 
 });

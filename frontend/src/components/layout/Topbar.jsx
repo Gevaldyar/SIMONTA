@@ -1,5 +1,6 @@
 
 import InterfaceIcon from '../common/InterfaceIcon'
+import NotificationCenter from './NotificationCenter'
 
 function Topbar({
   user,
@@ -70,7 +71,9 @@ function Topbar({
             strokeLinejoin="round"
           >
             <rect x="3" y="4" width="18" height="16" rx="1" />
+
             <path d="M9 4v16" />
+
             {isSidebarCollapsed
               ? <path d="m13 9 3 3-3 3" />
               : <path d="m16 9-3 3 3 3" />
@@ -78,6 +81,7 @@ function Topbar({
           </svg>
         </button>
 
+        {/* Brand heading */}
         <div className="min-w-0">
           <p className="truncate text-[9px] font-semibold tracking-[0.2em] text-[#963746]">
             DISKOMINFO / DIGITAL INFRASTRUCTURE
@@ -89,8 +93,9 @@ function Topbar({
         </div>
       </div>
 
-      <div className="flex shrink-0 items-center gap-3 sm:gap-5">
+      <div className="flex shrink-0 items-center gap-2 sm:gap-4">
 
+        {/* Admin session */}
         <div className="hidden items-center gap-2 border-r border-[#D8CFBF] pr-5 sm:flex">
           <span className="size-2 rounded-full bg-[#82918B] shadow-[0_0_8px_rgba(130,145,139,0.45)]" />
 
@@ -99,6 +104,10 @@ function Topbar({
           </span>
         </div>
 
+        {/* Notification Center */}
+        <NotificationCenter />
+
+        {/* Administrator profile */}
         <div className="flex items-center gap-2">
           <div className="
             grid size-9 place-items-center border border-[#B69A69]
@@ -118,6 +127,7 @@ function Topbar({
           </div>
         </div>
 
+        {/* Logout */}
         <button
           type="button"
           onClick={onLogout}
