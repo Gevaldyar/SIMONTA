@@ -56,6 +56,23 @@ function formatDate(value) {
   }).format(date)
 }
 
+function getNotificationEventType(notification) {
+  return notification.data?.type || notification.type || ''
+}
+
+function isDomainSslNotification(notification) {
+  const type = getNotificationEventType(notification)
+
+  return [
+    'domain_expiry_warning',
+    'domain_expired',
+    'ssl_expiry_warning',
+    'ssl_expired',
+    'ssl_verification_failed',
+    'ssl_verification_restored',
+  ].includes(type)
+}
+
 function NotificationCenter() {
   const navigate = useNavigate()
   const containerRef = useRef(null)
@@ -181,14 +198,22 @@ function NotificationCenter() {
     }
 
     const destination = notification.data?.url
+const eventType = getNotificationEventType(notification)
 
-    // Hanya izinkan navigasi ke path internal aplikasi.
-    const safeDestination =
-      typeof destination === 'string' &&
-      destination.startsWith('/') &&
-      !destination.startsWith('//')
-        ? destination
-        : '/history'
+const isSafeInternalPath =
+  typeof destination === 'string' &&
+  destination.startsWith('/') &&
+  !destination.startsWith('//')
+
+const isDomainSslEvent =
+  eventType.startsWith('domain_') ||
+  eventType.startsWith('ssl_')
+
+const safeDestination = isSafeInternalPath
+  ? destination
+  : isDomainSslEvent
+    ? '/domain-ssl'
+    : '/history'
 
     setIsOpen(false)
     navigate(safeDestination)
@@ -345,9 +370,18 @@ function NotificationCenter() {
               </div>
             ) : (
               notifications.map((notification) => {
-                const isUnread = !notification.read_at
+  const isUnread = !notification.read_at
+  const notificationData = notification.data || {}
 
-                return (
+  const eventType = getNotificationEventType(notification)
+
+const isSecurityRisk =
+  eventType === 'security_risk_detected'
+
+const isDomainSslEvent =
+  isDomainSslNotification(notification)
+
+  return (
                   <button
                     key={notification.id}
                     type="button"
@@ -384,6 +418,84 @@ function NotificationCenter() {
                         {notification.message}
                       </span>
 
+                      {isSecurityRisk && (
+  <span className="mt-2 flex flex-wrap gap-1.5">
+    {notificationData.security_status && (
+      <span className="border border-[#963746]/30 bg-[#963746]/5 px-2 py-1 text-[8px] font-bold tracking-wider text-[#963746]">
+        {notificationData.security_status === 'high'
+          ? 'HIGH RISK'
+          : 'NEED REVIEW'}
+      </span>
+    )}
+
+    {isDomainSslEvent && (
+  <span className="mt-2 flex flex-wrap gap-1.5">
+    {notificationData.domain && (
+      <span className="border border-[#D8CFBF] px-2 py-1 text-[8px] font-semibold text-[#665F56]">
+        DOMAIN: {notificationData.domain}
+      </span>
+    )}
+
+    {notificationData.hostname && (
+      <span className="border border-[#D8CFBF] px-2 py-1 text-[8px] font-semibold text-[#665F56]">
+        HOST: {notificationData.hostname}
+      </span>
+    )}
+
+    {notificationData.issuer && (
+      <span className="border border-[#D8CFBF] px-2 py-1 text-[8px] font-semibold text-[#665F56]">
+        ISSUER: {notificationData.issuer}
+      </span>
+    )}
+
+    {notificationData.days_remaining !== null &&
+      notificationData.days_remaining !== undefined && (
+        <span className="border border-[#B68A42]/40 bg-[#B68A42]/5 px-2 py-1 text-[8px] font-semibold text-[#816D43]">
+          {Number(notificationData.days_remaining) < 0
+            ? `${Math.abs(Number(notificationData.days_remaining))} DAYS OVERDUE`
+            : `${notificationData.days_remaining} DAYS REMAINING`}
+        </span>
+      )}
+
+    {(notificationData.expires_at || notificationData.valid_to) && (
+      <span className="border border-[#D8CFBF] px-2 py-1 text-[8px] font-semibold text-[#665F56]">
+        EXPIRES: {formatDate(
+          notificationData.expires_at || notificationData.valid_to
+        )}
+      </span>
+    )}
+
+    {notificationData.verification && (
+      <span className="border border-[#526D82]/30 bg-[#526D82]/5 px-2 py-1 text-[8px] font-semibold text-[#526D82]">
+        TLS: {String(notificationData.verification).toUpperCase()}
+      </span>
+    )}
+
+    {notificationData.threshold_days !== null &&
+      notificationData.threshold_days !== undefined && (
+        <span className="border border-[#D8CFBF] px-2 py-1 text-[8px] font-semibold text-[#665F56]">
+          THRESHOLD: {notificationData.threshold_days} DAYS
+        </span>
+      )}
+  </span>
+)}
+
+    {notificationData.risk_score !== null &&
+      notificationData.risk_score !== undefined && (
+        <span className="border border-[#D8CFBF] px-2 py-1 text-[8px] font-semibold text-[#665F56]">
+          SCORE: {notificationData.risk_score}/100
+        </span>
+      )}
+
+    {notificationData.finding_count !== undefined &&
+      notificationData.finding_count !== null && (
+        <span className="border border-[#D8CFBF] px-2 py-1 text-[8px] font-semibold text-[#665F56]">
+          {notificationData.finding_count} FINDINGS
+        </span>
+      )}
+  </span>
+)}
+
                       <span className="mt-2 block text-[9px] tracking-wide text-[#918879]">
                         {formatDate(notification.created_at)}
                       </span>
@@ -410,7 +522,7 @@ function NotificationCenter() {
               type="button"
               onClick={() => {
                 setIsOpen(false)
-                navigate('/history')
+                navigate('/notifications')
               }}
               className="
                 text-[9px] font-semibold tracking-wider

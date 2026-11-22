@@ -213,26 +213,124 @@ class ScanNotificationIntegrationTest extends TestCase
             ->scan($website);
 
         // HTTP 404 tetap merupakan scan yang berhasil menerima respons.
-        $this->assertSame('completed', $scan->status);
-        $this->assertSame(404, $scan->http_status_code);
+$this->assertSame('completed', $scan->status);
+$this->assertSame(404, $scan->http_status_code);
 
-        $this->assertSame(
-            1,
-            $user->notifications()->count()
-        );
+// Pastikan notifikasi berhasil dibuat.
+$this->assertSame(
+    1,
+    $user->notifications()->count()
+);
 
-        $notification = $user->notifications()->firstOrFail();
+$notification = $user->notifications()->firstOrFail();
 
-        $this->assertSame(
-            'http_non_success',
-            $notification->data['type']
-        );
+$this->assertSame(
+    'http_non_success',
+    $notification->data['type']
+);
 
-        $this->assertSame(
-            404,
-            $notification->data['http_status_code']
-        );
+$this->assertSame(
+    404,
+    $notification->data['http_status_code']
+);
+
+$this->assertSame(
+    'warning',
+    $notification->data['severity']
+);
+
+$this->assertSame(
+    'Website mengalami client error',
+    $notification->data['title']
+);
     }
+
+    public function test_http_301_does_not_generate_error_notification(): void
+{
+    $user = User::factory()->create();
+
+    $website = $this->createTestWebsite();
+
+    $inspector = $this->fakeInspector([
+        $this->response(
+            301,
+            [
+                'content-type' => ['text/html'],
+            ]
+        ),
+    ]);
+
+    $this->app->instance(
+        HttpInspector::class,
+        $inspector
+    );
+
+    $scan = app(WebsiteScanService::class)
+        ->scan($website);
+
+    $this->assertSame('completed', $scan->status);
+    $this->assertSame(301, $scan->http_status_code);
+
+    $this->assertSame(
+        0,
+        $user->notifications()->count()
+    );
+}
+
+public function test_http_503_generates_danger_notification(): void
+{
+    $user = User::factory()->create();
+
+    $website = $this->createTestWebsite();
+
+    $inspector = $this->fakeInspector([
+        $this->response(
+            503,
+            [
+                'content-type' => ['text/html'],
+            ],
+            '<html><head><title>Service Unavailable</title></head><body>Unavailable</body></html>'
+        ),
+    ]);
+
+    $this->app->instance(
+        HttpInspector::class,
+        $inspector
+    );
+
+    $scan = app(WebsiteScanService::class)
+        ->scan($website);
+
+    $this->assertSame('completed', $scan->status);
+    $this->assertSame(503, $scan->http_status_code);
+
+    $this->assertSame(
+        1,
+        $user->notifications()->count()
+    );
+
+    $notification = $user->notifications()->firstOrFail();
+
+    $this->assertSame(
+        'http_non_success',
+        $notification->data['type']
+    );
+
+    $this->assertSame(
+        'danger',
+        $notification->data['severity']
+    );
+
+    $this->assertSame(
+        'Website mengalami server error',
+        $notification->data['title']
+    );
+
+    $this->assertSame(
+        503,
+        $notification->data['http_status_code']
+    );
+}
 
     public function test_failed_scan_generates_failure_notification(): void
     {
@@ -570,6 +668,80 @@ public function test_failed_callback_does_not_override_completed_scan(): void
     $this->assertSame(
         0,
         $user->notifications()->count()
+    );
+}
+
+public function test_security_assessment_is_saved_and_generates_notification(): void
+{
+    $user = User::factory()->create();
+
+    $website = $this->createTestWebsite();
+
+    $inspector = $this->fakeInspector([
+        $this->response(
+            200,
+            [
+                'content-type' => ['text/html; charset=utf-8'],
+            ],
+            '<html>
+                <head><title>Security Test</title></head>
+                <body>
+                    <h1>Hacked by Security Test</h1>
+                </body>
+            </html>'
+        ),
+    ]);
+
+    $this->app->instance(
+        HttpInspector::class,
+        $inspector
+    );
+
+    $scan = app(WebsiteScanService::class)
+        ->scan($website);
+
+    $this->assertSame('completed', $scan->status);
+
+    // Pastikan hasil assessment tersimpan di metadata scan.
+    $this->assertSame(
+        'high',
+        data_get($scan->metadata, 'security_assessment.status')
+    );
+
+    $this->assertSame(
+        60,
+        data_get($scan->metadata, 'security_assessment.risk_score')
+    );
+
+    // Pastikan notifikasi keamanan dikirim.
+    $notification = $user->notifications()
+        ->where('data->type', 'security_risk_detected')
+        ->firstOrFail();
+
+    $this->assertSame(
+        'danger',
+        $notification->data['severity']
+    );
+
+    $this->assertSame(
+        $scan->id,
+        $notification->data['scan_id']
+    );
+
+    $this->assertSame(
+        '/security',
+        $notification->data['url']
+    );
+
+    // Pemrosesan ulang scan tidak boleh menggandakan notifikasi.
+    app(ScanNotificationService::class)
+        ->notifyForScan($scan->fresh());
+
+    $this->assertSame(
+        1,
+        $user->notifications()
+            ->where('data->type', 'security_risk_detected')
+            ->count()
     );
 }
 

@@ -1,4 +1,6 @@
 
+import { lazy, Suspense } from 'react'
+
 import {
   Navigate,
   Route,
@@ -8,92 +10,139 @@ import {
 import GuestRoute from './routes/GuestRoute'
 import ProtectedRoute from './routes/ProtectedRoute'
 
-import AuthLayout from './layouts/AuthLayout'
-import DashboardLayout from './layouts/DashboardLayout'
+// Layout tetap dipisahkan agar dapat dimuat sesuai area aplikasi.
+const AuthLayout = lazy(() => import('./layouts/AuthLayout'))
+const DashboardLayout = lazy(() => import('./layouts/DashboardLayout'))
 
-import LoginPage from './pages/auth/LoginPage'
-import DashboardPage from './pages/dashboard/DashboardPage'
-import NotFoundPage from './pages/errors/NotFoundPage'
-import OpdManagementPage from './pages/opds/OpdManagementPage'
-import WebsiteManagementPage from './pages/websites/WebsiteManagementPage'
-import MonitoringCenterPage from './pages/monitoring/MonitoringCenterPage'
-import TechnologyRegistryPage from './pages/technologies/TechnologyRegistryPage'
-import ScanHistoryPage from './pages/history/ScanHistoryPage'
-import SettingsPage from "./pages/settings/SettingsPage";
-import ReportsPage from './pages/reports/ReportsPage'
-import TechnologyChangesPage from './pages/technology-changes/TechnologyChangesPage'
+// Authentication
+const LoginPage = lazy(() => import('./pages/auth/LoginPage'))
+
+// Dashboard
+const DashboardPage = lazy(() => import('./pages/dashboard/DashboardPage'))
+
+// OPD and Website Management
+const OpdManagementPage = lazy(() => import('./pages/opds/OpdManagementPage'))
+const WebsiteManagementPage = lazy(() => import('./pages/websites/WebsiteManagementPage'))
+
+// Monitoring
+const MonitoringCenterPage = lazy(() => import('./pages/monitoring/MonitoringCenterPage'))
+const DomainSslMonitoringPage = lazy(() => import('./pages/domain-ssl/DomainSslMonitoringPage'))
+
+// Technology
+const TechnologyRegistryPage = lazy(() => import('./pages/technologies/TechnologyRegistryPage'))
+const TechnologyChangesPage = lazy(() => import('./pages/technology-changes/TechnologyChangesPage'))
+
+// Security
+const SecurityMonitoringPage = lazy(() => import('./pages/security/SecurityMonitoringPage'))
+const SecurityHeadersAuditPage = lazy(() => import('./pages/security-headers/SecurityHeadersAuditPage'))
+
+// History, Reports, Notifications, Settings
+const ScanHistoryPage = lazy(() => import('./pages/history/ScanHistoryPage'))
+const NotificationHistoryPage = lazy(() => import('./pages/notifications/NotificationHistoryPage'))
+const ReportsPage = lazy(() => import('./pages/reports/ReportsPage'))
+const SettingsPage = lazy(() => import('./pages/settings/SettingsPage'))
+
+// Error pages
+const NotFoundPage = lazy(() => import('./pages/errors/NotFoundPage'))
 
 function App() {
   return (
-    <Routes>
-
-      {/* Public guest area */}
-      <Route element={<GuestRoute />}>
-        <Route element={<AuthLayout />}>
-          <Route path="/login" element={<LoginPage />} />
+    <Suspense
+      fallback={
+        <div className="min-h-screen flex items-center justify-center text-sm text-slate-500">
+          Memuat halaman...
+        </div>
+      }
+    >
+      <Routes>
+        {/* Public guest area */}
+        <Route element={<GuestRoute />}>
+          <Route element={<AuthLayout />}>
+            <Route path="/login" element={<LoginPage />} />
+          </Route>
         </Route>
-      </Route>
 
-      {/* Protected administrator area */}
-      <Route element={<ProtectedRoute />}>
-        <Route element={<DashboardLayout />}>
+        {/* Protected administrator area */}
+        <Route element={<ProtectedRoute />}>
+          <Route element={<DashboardLayout />}>
 
-          <Route index element={<DashboardPage />} />
+            <Route index element={<DashboardPage />} />
 
-          <Route
-            path="dashboard"
-            element={<Navigate to="/" replace />}
-          />
+            <Route
+              path="dashboard"
+              element={<Navigate to="/" replace />}
+            />
 
-          <Route
-  path="opds"
-  element={<OpdManagementPage />}
-/>
+            <Route
+              path="opds"
+              element={<OpdManagementPage />}
+            />
 
-          <Route
-  path="websites"
-  element={<WebsiteManagementPage />}
-/>
+            <Route
+              path="websites"
+              element={<WebsiteManagementPage />}
+            />
 
-          <Route
-  path="monitoring"
-  element={<MonitoringCenterPage />}
-/>
+            <Route
+              path="monitoring"
+              element={<MonitoringCenterPage />}
+            />
 
-          <Route
-  path="technologies"
-  element={<TechnologyRegistryPage />}
-/>
+            <Route
+              path="domain-ssl"
+              element={<DomainSslMonitoringPage />}
+            />
 
-<Route
-  path="technology-changes"
-  element={<TechnologyChangesPage />}
-/>
+            <Route
+              path="technologies"
+              element={<TechnologyRegistryPage />}
+            />
 
-          <Route
-  path="history"
-  element={<ScanHistoryPage />}
-/>
+            <Route
+              path="technology-changes"
+              element={<TechnologyChangesPage />}
+            />
 
-          <Route
-  path="reports"
-  element={<ReportsPage />}
-/>
+            <Route
+              path="history"
+              element={<ScanHistoryPage />}
+            />
 
-          <Route
-  path="settings"
-  element={<SettingsPage />}
-/>
+            <Route
+              path="notifications"
+              element={<NotificationHistoryPage />}
+            />
 
+            <Route
+              path="reports"
+              element={<ReportsPage />}
+            />
+
+            <Route
+              path="settings"
+              element={<SettingsPage />}
+            />
+
+            <Route
+              path="security"
+              element={<SecurityMonitoringPage />}
+            />
+
+            <Route
+              path="security-headers"
+              element={<SecurityHeadersAuditPage />}
+            />
+
+          </Route>
         </Route>
-      </Route>
 
-      <Route
-        path="*"
-        element={<NotFoundPage />}
-      />
-
-    </Routes>
+        {/* Not found */}
+        <Route
+          path="*"
+          element={<NotFoundPage />}
+        />
+      </Routes>
+    </Suspense>
   )
 }
 

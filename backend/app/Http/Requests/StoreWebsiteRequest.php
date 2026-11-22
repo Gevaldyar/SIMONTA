@@ -31,7 +31,7 @@ class StoreWebsiteRequest extends FormRequest
 
             'monitoring_enabled' => ['sometimes', 'boolean'],
 
-            // Monitoring minimum satu jam.
+            // Interval monitoring yang didukung dalam menit.
             'monitoring_interval_minutes' => [
                 'sometimes',
                 'integer',

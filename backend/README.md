@@ -1,58 +1,163 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+# SIMONTA Backend
 
-## About Laravel
+Backend SIMONTA dibangun menggunakan Laravel 13 dan berfungsi sebagai REST API untuk aplikasi monitoring website OPD.
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+## Tanggung Jawab Backend
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+Backend menangani:
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+- Autentikasi administrator menggunakan Laravel Sanctum.
+- Manajemen data OPD dan website.
+- Monitoring website secara manual dan otomatis.
+- Identifikasi teknologi website.
+- Deteksi perubahan teknologi.
+- Pemeriksaan registrasi domain dan sertifikat SSL.
+- Security Assessment dan Security Headers Audit.
+- Notifikasi sistem.
+- Ekspor laporan monitoring.
+- Pengelolaan profil administrator.
 
-## Learning Laravel
+## Teknologi
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
+- PHP 8.5
+- Laravel 13
+- Laravel Sanctum
+- MySQL 8
+- Laravel Queue
+- Laravel Scheduler
 
-In addition, [Laracasts](https://laracasts.com) contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+## Persyaratan
 
-You can also watch bite-sized lessons with real-world projects on [Laravel Learn](https://laravel.com/learn), where you will be guided through building a Laravel application from scratch while learning PHP fundamentals.
+- PHP 8.3 atau lebih baru.
+- Composer.
+- MySQL 8.
+- Ekstensi PHP yang diperlukan oleh Laravel dan Composer.
 
-## Agentic Development
+## Instalasi
 
-Laravel's predictable structure and conventions make it ideal for AI coding agents like Claude Code, Cursor, and GitHub Copilot. Install [Laravel Boost](https://laravel.com/docs/ai) to supercharge your AI workflow:
+Jalankan dari direktori `backend`.
+
+### 1. Instal dependency
 
 ```bash
-composer require laravel/boost --dev
-
-php artisan boost:install
+composer install
 ```
 
-Boost provides your agent 15+ tools and skills that help agents build Laravel applications while following best practices.
+### 2. Salin environment
 
-## Contributing
+Windows PowerShell:
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+```powershell
+Copy-Item .env.example .env
+```
 
-## Code of Conduct
+### 3. Buat database MySQL
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+```sql
+CREATE DATABASE simonta_db
+CHARACTER SET utf8mb4
+COLLATE utf8mb4_unicode_ci;
+```
 
-## Security Vulnerabilities
+### 4. Konfigurasi `.env`
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+Sesuaikan DB_HOST, DB_PORT, DB_DATABASE, DB_USERNAME, dan DB_PASSWORD.
 
-## License
+Pastikan konfigurasi Sanctum sesuai dengan alamat frontend.
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+### 5. Generate application key
+
+```bash
+php artisan key:generate
+```
+
+### 6. Jalankan migration
+
+```bash
+php artisan migrate
+```
+
+### 7. Seed katalog teknologi
+
+```bash
+php artisan db:seed --class=TechnologyCatalogSeeder
+```
+
+### 8. Buat administrator
+
+```bash
+php artisan simonta:make-admin
+```
+
+Password administrator minimal 12 karakter.
+
+### 9. Jalankan server
+
+```bash
+php artisan serve
+```
+
+Backend berjalan pada `http://localhost:8000`.
+
+## Queue dan Scheduler
+
+SIMONTA menggunakan database queue untuk memproses pekerjaan monitoring.
+
+Jalankan queue worker:
+
+```bash
+php artisan queue:work database -v
+```
+
+Jalankan scheduler lokal:
+
+```bash
+php artisan schedule:work
+```
+
+Keduanya harus tetap berjalan selama pengujian monitoring otomatis.
+
+Untuk produksi, gunakan process manager seperti Supervisor atau systemd untuk queue worker, serta cron untuk menjalankan Laravel Scheduler sesuai konfigurasi server.
+
+## Pengujian
+
+Jalankan seluruh pengujian:
+
+```bash
+php artisan test
+```
+
+Pengujian mencakup autentikasi, API, monitoring, validasi URL, deteksi teknologi, perubahan teknologi, Domain & SSL, notifikasi, laporan, dan modul keamanan.
+
+## Struktur Folder Utama
+
+```text
+backend/
+├── app/
+│   ├── Console/
+│   │   └── Commands/
+│   ├── Http/
+│   │   ├── Controllers/
+│   │   └── Requests/
+│   ├── Jobs/
+│   ├── Models/
+│   ├── Notifications/
+│   └── Services/
+├── bootstrap/
+├── config/
+├── database/
+│   ├── migrations/
+│   └── seeders/
+├── routes/
+├── tests/
+├── .env.example
+└── composer.json
+```
+
+## Catatan Keamanan
+
+- Jangan mengunggah `.env` ke repository.
+- Jangan menonaktifkan validasi TLS.
+- Pemeriksaan website harus tetap menggunakan validasi URL dan pembatasan alamat IP internal.
+- Gunakan HTTPS, `APP_DEBUG=false`, dan konfigurasi CORS yang sesuai pada produksi.

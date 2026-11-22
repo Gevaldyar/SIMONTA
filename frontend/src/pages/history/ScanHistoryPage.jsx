@@ -514,7 +514,7 @@ try {
       {/* Page heading */}
       <section className="relative overflow-hidden border-b border-[#CFC4B2] pb-7">
         <div className="pointer-events-none absolute -right-2 -top-12 select-none font-serif text-[150px] leading-none text-[#E7DFD1]">
-          06
+          07
         </div>
 
         <div className="relative">

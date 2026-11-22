@@ -1,0 +1,339 @@
+/*
+ * SIMONTA — UI/UX Redesign · Phase 01
+ * Visual foundation only: color, typography, spacing, surfaces and table clarity.
+ * This file does not change routes, API calls, state, or business logic.
+ */
+
+:root {
+  color-scheme: light;
+  --simonta-bg: #f3f5f8;
+  --simonta-surface: #ffffff;
+  --simonta-surface-muted: #f8fafc;
+  --simonta-surface-soft: #eef2f7;
+  --simonta-border: #d7dee8;
+  --simonta-border-strong: #c4cedb;
+  --simonta-text: #1e293b;
+  --simonta-text-soft: #526176;
+  --simonta-text-muted: #718096;
+  --simonta-navy: #172235;
+  --simonta-navy-soft: #223149;
+  --simonta-accent: #963746;
+  --simonta-accent-dark: #7d2e3b;
+  --simonta-gold: #c5a76b;
+  --simonta-success: #287a59;
+  --simonta-warning: #a66a16;
+  --simonta-danger: #b33d4c;
+  --simonta-radius-sm: 8px;
+  --simonta-radius-md: 12px;
+  --simonta-radius-lg: 16px;
+  --simonta-shadow-card: 0 1px 2px rgb(15 23 42 / 4%), 0 8px 24px rgb(15 23 42 / 4%);
+    --simonta-font-sans: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+}
+
+html {
+  min-width: 320px;
+  background: var(--simonta-bg);
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  min-width: 320px;
+  min-height: 100vh;
+  margin: 0;
+  background: var(--simonta-bg);
+  color: var(--simonta-text);
+  font-family: var(--simonta-font-sans);
+  font-size: 14px;
+  line-height: 1.55;
+}
+
+#root {
+  min-height: 100vh;
+}
+
+/* The old cream canvas becomes a calmer neutral application workspace. */
+.min-h-screen {
+  background-color: var(--simonta-bg) !important;
+  color: var(--simonta-text);
+}
+
+/* Sidebar: stronger separation from the workspace and clearer navigation rows. */
+aside[aria-label="Navigasi utama SIMONTA"] {
+  background: var(--simonta-navy) !important;
+  border-right: 1px solid #34435a !important;
+  color: #f7f9fc !important;
+  box-shadow: 8px 0 28px rgb(15 23 42 / 7%);
+}
+
+aside[aria-label="Navigasi utama SIMONTA"] > div:first-child {
+  min-height: 82px;
+  border-bottom: 1px solid #34435a !important;
+}
+
+aside[aria-label="Navigasi utama SIMONTA"] nav a {
+  min-height: 44px;
+  margin-block: 3px;
+  border: 1px solid transparent !important;
+  border-radius: var(--simonta-radius-sm);
+  padding: 10px 12px;
+  color: #c4cedb !important;
+  font-size: 13px;
+  font-weight: 500;
+  letter-spacing: 0;
+  transition: background-color 160ms ease, border-color 160ms ease, color 160ms ease;
+}
+
+aside[aria-label="Navigasi utama SIMONTA"] nav a:hover {
+  background: #283750 !important;
+  border-color: #3c4d67 !important;
+  color: #ffffff !important;
+}
+
+aside[aria-label="Navigasi utama SIMONTA"] nav a[aria-current="page"] {
+  background: rgb(150 55 70 / 24%) !important;
+  border-color: rgb(197 167 107 / 45%) !important;
+  color: #ffffff !important;
+  box-shadow: inset 3px 0 0 var(--simonta-gold);
+}
+
+aside[aria-label="Navigasi utama SIMONTA"] nav a span:last-child {
+  color: #91a0b6 !important;
+}
+
+aside[aria-label="Navigasi utama SIMONTA"] p {
+  line-height: 1.5;
+}
+
+/* Topbar should read as a distinct toolbar, not as an extension of the page. */
+header.sticky {
+  min-height: 72px;
+  background: rgb(255 255 255 / 96%) !important;
+  border-bottom: 1px solid var(--simonta-border) !important;
+  box-shadow: 0 2px 8px rgb(15 23 42 / 3%);
+  backdrop-filter: blur(14px);
+}
+
+/* Workspace rhythm and readable body copy. */
+main {
+  color: var(--simonta-text);
+  font-family: var(--simonta-font-sans);
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+main h1,
+main h2,
+main h3,
+main h4 {
+  color: var(--simonta-text);
+  line-height: 1.25;
+  text-wrap: pretty;
+}
+
+main h1 {
+  letter-spacing: -0.035em;
+}
+
+main p {
+  text-wrap: pretty;
+}
+
+/* Replace very small metadata labels with readable minimum sizes. */
+main [class*="text-[9px]"],
+main [class*="text-[10px]"] {
+  font-size: 11px !important;
+  line-height: 1.5 !important;
+}
+
+main [class*="text-[11px]"] {
+  font-size: 12px !important;
+}
+
+/* Standardized content surfaces. This catches the existing panel/card backgrounds. */
+main [class*="bg-[#F7F4EC]"],
+main [class*="bg-[#FAF8F2]"],
+main [class*="bg-[#EEE9DD]"] {
+  background-color: var(--simonta-surface) !important;
+}
+
+main [class*="bg-[#F7F4EC]"] {
+  border-color: var(--simonta-border) !important;
+  border-radius: var(--simonta-radius-md) !important;
+  box-shadow: var(--simonta-shadow-card);
+}
+
+main [class*="border-[#D8CFBF]"],
+main [class*="border-[#CFC4B2]"],
+main [class*="border-[#D0C4B2]"] {
+  border-color: var(--simonta-border) !important;
+}
+
+main [class*="text-[#191A20]"],
+main [class*="text-[#252B37]"] {
+  color: var(--simonta-text) !important;
+}
+
+main [class*="text-[#77736C]"],
+main [class*="text-[#817A70]"],
+main [class*="text-[#665F56]"] {
+  color: var(--simonta-text-soft) !important;
+}
+
+/* Tables: clear vertical column dividers, horizontal row dividers and stronger headers. */
+main table {
+  width: 100%;
+  border: 1px solid var(--simonta-border-strong);
+  border-collapse: separate !important;
+  border-spacing: 0;
+  background: var(--simonta-surface);
+  color: var(--simonta-text);
+  font-size: 13px;
+}
+
+main table thead th {
+  padding: 14px 16px !important;
+  background: #edf1f6 !important;
+  border-right: 1px solid var(--simonta-border-strong) !important;
+  border-bottom: 2px solid var(--simonta-border-strong) !important;
+  color: #40516a !important;
+  font-family: var(--simonta-font-sans);
+  font-size: 11px !important;
+  font-weight: 700 !important;
+  letter-spacing: 0.045em !important;
+  line-height: 1.4 !important;
+  white-space: nowrap;
+}
+
+main table tbody td {
+  padding: 14px 16px !important;
+  background: #ffffff;
+  border-right: 1px solid var(--simonta-border) !important;
+  border-bottom: 1px solid var(--simonta-border) !important;
+  color: var(--simonta-text-soft);
+  font-size: 13px !important;
+  line-height: 1.55 !important;
+  vertical-align: middle;
+}
+
+main table th:last-child,
+main table td:last-child {
+  border-right: 0 !important;
+}
+
+main table tbody tr:last-child td {
+  border-bottom: 0 !important;
+}
+
+main table tbody tr:nth-child(even) td {
+  background: #f8fafc;
+}
+
+main table tbody tr:hover td {
+  background: #f0f4f9 !important;
+}
+
+/* Inputs and filters: consistent height, contrast and focus state. */
+main input:not([type="checkbox"]):not([type="radio"]),
+main select,
+main textarea {
+  min-height: 42px;
+  border: 1px solid var(--simonta-border-strong) !important;
+  border-radius: var(--simonta-radius-sm) !important;
+  background-color: #ffffff !important;
+  color: var(--simonta-text) !important;
+  font-family: var(--simonta-font-sans);
+  font-size: 13px !important;
+  line-height: 1.45;
+  box-shadow: none;
+}
+
+main input::placeholder,
+main textarea::placeholder {
+  color: #8a97a9 !important;
+  opacity: 1;
+}
+
+main input:focus,
+main select:focus,
+main textarea:focus {
+  border-color: var(--simonta-accent) !important;
+  outline: 3px solid rgb(150 55 70 / 12%) !important;
+  outline-offset: 0;
+}
+
+/* Buttons retain their semantic colors while sharing one shape and focus treatment. */
+main button,
+header button,
+aside button {
+  border-radius: var(--simonta-radius-sm);
+  font-family: var(--simonta-font-sans);
+}
+
+button:focus-visible,
+a:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible {
+  outline: 3px solid rgb(150 55 70 / 24%);
+  outline-offset: 2px;
+}
+
+/* Keep destructive and status colors distinguishable from the neutral surfaces. */
+main [class*="text-[#963746]"] {
+  color: var(--simonta-accent) !important;
+}
+
+/* Do not force every burgundy utility to a solid fill.
+   Tailwind uses bg-[#963746]/10 for pale status badges; preserving that
+   opacity prevents red text from disappearing against a solid red fill. */
+main [class*="bg-[#963746]/10"] {
+  background-color: rgb(150 55 70 / 10%) !important;
+}
+
+main [class*="hover:bg-[#963746]"]:hover {
+  background-color: var(--simonta-accent-dark) !important;
+}
+
+/* Keep long URLs and technical values from breaking the page grid. */
+main pre,
+main code,
+main a[href^="http"] {
+  overflow-wrap: anywhere;
+}
+
+/* Scrollbar contrast. */
+* {
+  scrollbar-color: #aab5c4 transparent;
+  scrollbar-width: thin;
+}
+
+@media (max-width: 767px) {
+  main {
+    padding-inline: 16px !important;
+    padding-top: 22px !important;
+    padding-bottom: 28px !important;
+  }
+
+  main table thead th,
+  main table tbody td {
+    padding: 12px !important;
+  }
+
+  header.sticky {
+    min-height: 64px;
+    padding-inline: 14px !important;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}

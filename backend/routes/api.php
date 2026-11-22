@@ -12,6 +12,9 @@ use App\Http\Controllers\Api\ProfileController;
 use App\Http\Controllers\Api\ReportController;
 use App\Http\Controllers\Api\TechnologyChangeController;
 use App\Http\Controllers\Api\NotificationController;
+use App\Http\Controllers\Api\SecurityAssessmentController;
+use App\Http\Controllers\Api\SecurityHeadersAuditController;
+use App\Http\Controllers\Api\DomainSslMonitoringController;
 
 Route::middleware('auth:sanctum')->group(function () {
 
@@ -137,6 +140,11 @@ Route::get(
     [DashboardController::class, 'recentScans']
 );
 
+Route::get(
+    '/dashboard/website-health',
+    [DashboardController::class, 'websiteHealth']
+);
+
 // ===================================
 // ADMINISTRATOR PROFILE & SETTINGS
 // ===================================
@@ -185,6 +193,40 @@ Route::patch(
 Route::patch(
     '/notifications/{notificationId}/read',
     [NotificationController::class, 'markAsRead']
+);
+
+// ===================================
+// WEBSITE SECURITY ASSESSMENT
+// ===================================
+
+Route::get(
+    '/security-assessments',
+    [SecurityAssessmentController::class, 'index']
+);
+
+// ===================================
+// HTTP SECURITY HEADERS AUDIT
+// ===================================
+
+Route::get(
+    '/security-headers-audits',
+    [SecurityHeadersAuditController::class, 'index']
+);
+
+// ===================================
+// DOMAIN & SSL MONITORING
+// ===================================
+
+// Hasil pemeriksaan domain dan SSL terbaru per website.
+Route::get(
+    '/domain-ssl-checks',
+    [DomainSslMonitoringController::class, 'index']
+);
+
+// Riwayat pemeriksaan domain dan SSL per website.
+Route::get(
+    '/websites/{website}/domain-ssl-history',
+    [DomainSslMonitoringController::class, 'history']
 );
 
 });

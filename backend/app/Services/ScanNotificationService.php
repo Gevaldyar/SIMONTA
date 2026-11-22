@@ -62,6 +62,71 @@ class ScanNotificationService
                 return;
             }
 
+            // 2. Security Assessment Notification.
+$assessment = $scan->metadata['security_assessment'] ?? null;
+
+if (
+    is_array($assessment)
+    && in_array(
+        $assessment['status'] ?? null,
+        ['review', 'high'],
+        true
+    )
+) {
+    $securityStatus = $assessment['status'];
+    $riskScore = $assessment['risk_score'] ?? null;
+
+    $eventKey = "scan:{$scan->id}:security-assessment";
+
+    $isHighRisk = $securityStatus === 'high';
+
+    $findingTitles = collect(
+        $assessment['findings'] ?? []
+    )
+        ->pluck('title')
+        ->filter()
+        ->take(3)
+        ->implode(', ');
+
+    $message = "{$websiteName} milik {$opdName} "
+        . "mendapatkan hasil Security Assessment {$securityStatus}";
+
+    if ($riskScore !== null) {
+        $message .= " dengan skor risiko {$riskScore}/100";
+    }
+
+    if ($findingTitles !== '') {
+        $message .= ". Indikator: {$findingTitles}";
+    }
+
+    $message .= '. Silakan periksa hasil Security Assessment.';
+
+    $this->sendOnce(
+        eventKey: $eventKey,
+        payload: [
+            'type' => 'security_risk_detected',
+            'severity' => $isHighRisk ? 'danger' : 'warning',
+            'title' => $isHighRisk
+                ? 'Indikator keamanan berisiko tinggi'
+                : 'Indikator keamanan perlu ditinjau',
+            'message' => $message,
+            'event_key' => $eventKey,
+            'scan_id' => $scan->id,
+            'website_id' => $website->id,
+            'website_name' => $websiteName,
+            'opd_name' => $opdName,
+            'security_status' => $securityStatus,
+            'risk_score' => $riskScore,
+            'findings' => array_slice(
+                $assessment['findings'] ?? [],
+                0,
+                10
+            ),
+            'url' => '/security',
+        ]
+    );
+}
+
             // 2. Perubahan teknologi.
             foreach ($scan->technologyChanges as $change) {
                 $eventKey = "scan:{$scan->id}:change:{$change->id}";
@@ -128,31 +193,47 @@ class ScanNotificationService
             }
 
             // 3. Website memberikan respons HTTP non-2xx.
-            $httpStatus = $scan->http_status_code;
+            // 3. Website memberikan respons HTTP error (400–599).
+$httpStatus = $scan->http_status_code;
 
-            if (
-                $httpStatus !== null
-                && ($httpStatus < 200 || $httpStatus >= 300)
-            ) {
-                $eventKey = "scan:{$scan->id}:http:{$httpStatus}";
+if (
+    $httpStatus !== null
+    && $httpStatus >= 400
+    && $httpStatus <= 599
+) {
+    $eventKey = "scan:{$scan->id}:http:{$httpStatus}";
 
-                $this->sendOnce(
-                    eventKey: $eventKey,
-                    payload: [
-                        'type' => 'http_non_success',
-                        'severity' => 'warning',
-                        'title' => 'Respons HTTP tidak normal',
-                        'message' => "{$websiteName} milik {$opdName} memberikan respons HTTP {$httpStatus}. Server merespons, tetapi statusnya bukan 2xx.",
-                        'event_key' => $eventKey,
-                        'scan_id' => $scan->id,
-                        'website_id' => $website->id,
-                        'website_name' => $websiteName,
-                        'opd_name' => $opdName,
-                        'http_status_code' => $httpStatus,
-                        'url' => '/history',
-                    ]
-                );
-            }
+    $severity = $httpStatus >= 500
+        ? 'danger'
+        : 'warning';
+
+    $title = $httpStatus >= 500
+        ? 'Website mengalami server error'
+        : 'Website mengalami client error';
+
+    $message = "{$websiteName} milik {$opdName} "
+        . "memberikan respons HTTP {$httpStatus}. "
+        . ($httpStatus >= 500
+            ? 'Server mengalami kesalahan saat memproses permintaan.'
+            : 'Permintaan tidak dapat dipenuhi oleh server.');
+
+    $this->sendOnce(
+        eventKey: $eventKey,
+        payload: [
+            'type' => 'http_non_success',
+            'severity' => $severity,
+            'title' => $title,
+            'message' => $message,
+            'event_key' => $eventKey,
+            'scan_id' => $scan->id,
+            'website_id' => $website->id,
+            'website_name' => $websiteName,
+            'opd_name' => $opdName,
+            'http_status_code' => $httpStatus,
+            'url' => '/history',
+        ]
+    );
+}
         } catch (Throwable $exception) {
             // Kegagalan notifikasi tidak boleh menggagalkan scan.
             report($exception);

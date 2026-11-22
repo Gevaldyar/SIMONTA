@@ -1,0 +1,339 @@
+/*
+ * SIMONTA — Registry pages refinement
+ * Targeted visual layer for OPD Registry and Website Registry.
+ * Import after simonta-redesign.css and simonta-dark-mode.css.
+ */
+
+.simonta-registry-page {
+  color: var(--simonta-text);
+}
+
+.simonta-registry-hero {
+  padding-bottom: 2rem !important;
+  border-color: var(--simonta-border-strong) !important;
+}
+
+.simonta-registry-hero h1 {
+  line-height: 1.08 !important;
+  letter-spacing: -0.045em !important;
+}
+
+.simonta-registry-hero p {
+  max-width: 46rem;
+}
+
+.simonta-registry-hero > div > div:last-child > span {
+  min-height: 30px;
+  display: inline-flex;
+  align-items: center;
+  border-radius: 6px;
+  background: var(--simonta-surface-muted);
+  border-color: var(--simonta-border) !important;
+  color: var(--simonta-text-soft) !important;
+  font-size: 10px !important;
+  font-weight: 650;
+  letter-spacing: 0.08em !important;
+}
+
+.simonta-registry-stats {
+  align-items: stretch;
+  gap: 14px !important;
+}
+
+.simonta-registry-stat {
+  min-height: 150px;
+  border-radius: 14px !important;
+  border-color: var(--simonta-border) !important;
+  background: var(--simonta-surface) !important;
+  box-shadow: var(--simonta-shadow-card) !important;
+  padding: 22px !important;
+}
+
+.simonta-registry-stat:hover {
+  border-color: var(--simonta-gold) !important;
+  transform: translateY(-2px);
+}
+
+.simonta-registry-panel {
+  overflow: hidden;
+  border: 1px solid var(--simonta-border-strong) !important;
+  border-radius: 15px !important;
+  background: var(--simonta-surface) !important;
+  box-shadow: var(--simonta-shadow-card) !important;
+}
+
+.simonta-registry-toolbar {
+  background: var(--simonta-surface-muted);
+  border-color: var(--simonta-border) !important;
+}
+
+.simonta-registry-page input:not([type="checkbox"]):not([type="radio"]),
+.simonta-registry-page select,
+.simonta-registry-page textarea {
+  min-height: 43px;
+  border-radius: 8px !important;
+  border-color: var(--simonta-border-strong) !important;
+  background: var(--simonta-surface) !important;
+  color: var(--simonta-text) !important;
+  font-size: 13px !important;
+}
+
+.simonta-registry-page input::placeholder,
+.simonta-registry-page textarea::placeholder {
+  color: var(--simonta-text-muted) !important;
+  opacity: 1;
+}
+
+.simonta-registry-page select option {
+  background: var(--simonta-surface);
+  color: var(--simonta-text);
+}
+
+.simonta-registry-table-wrap {
+  max-width: 100%;
+  background: var(--simonta-surface);
+  scrollbar-gutter: stable;
+}
+
+.simonta-registry-table {
+  width: 100%;
+  border: 0 !important;
+  border-collapse: separate !important;
+  border-spacing: 0;
+  background: var(--simonta-surface) !important;
+  color: var(--simonta-text) !important;
+}
+
+.simonta-registry-table thead th {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  padding: 15px 17px !important;
+  background: #edf1f6 !important;
+  border-right: 1px solid var(--simonta-border-strong) !important;
+  border-bottom: 2px solid var(--simonta-border-strong) !important;
+  color: #40516a !important;
+  font-size: 10px !important;
+  font-weight: 750 !important;
+  letter-spacing: 0.065em !important;
+  white-space: nowrap;
+}
+
+.simonta-registry-table tbody td {
+  padding: 16px 17px !important;
+  background: var(--simonta-surface) !important;
+  border-right: 1px solid var(--simonta-border) !important;
+  border-bottom: 1px solid var(--simonta-border) !important;
+  color: var(--simonta-text-soft) !important;
+  font-size: 13px !important;
+  vertical-align: middle;
+}
+
+.simonta-registry-table th:last-child,
+.simonta-registry-table td:last-child {
+  border-right: 0 !important;
+}
+
+.simonta-registry-table tbody tr:last-child td {
+  border-bottom: 0 !important;
+}
+
+.simonta-registry-table tbody tr:nth-child(even) td {
+  background: var(--simonta-surface-muted) !important;
+}
+
+.simonta-registry-table tbody tr:hover td {
+  background: var(--simonta-surface-soft) !important;
+}
+
+.simonta-registry-mobile-list {
+  background: var(--simonta-surface);
+}
+
+.simonta-registry-mobile-list > article {
+  background: var(--simonta-surface);
+  transition: background-color 160ms ease;
+}
+
+.simonta-registry-mobile-list > article:nth-child(even) {
+  background: var(--simonta-surface-muted);
+}
+
+.simonta-registry-mobile-list > article:hover {
+  background: var(--simonta-surface-soft);
+}
+
+.simonta-registry-mobile-list > article + article {
+  border-top: 1px solid var(--simonta-border) !important;
+}
+
+.simonta-registry-modal {
+  max-height: min(90vh, 900px);
+  overflow-y: auto;
+  border-radius: 16px !important;
+  border-color: var(--simonta-border-strong) !important;
+  background: var(--simonta-surface) !important;
+  color: var(--simonta-text) !important;
+  box-shadow: 0 28px 90px rgb(0 0 0 / 28%) !important;
+}
+
+.simonta-registry-modal > div:first-child {
+  background: var(--simonta-surface-muted);
+  border-color: var(--simonta-border) !important;
+}
+
+.simonta-registry-form-grid {
+  background: var(--simonta-surface);
+}
+
+.simonta-registry-form-grid label {
+  color: var(--simonta-text-soft);
+}
+
+.simonta-registry-page .simonta-icon-action {
+  min-width: 38px;
+  min-height: 38px;
+  border-radius: 8px !important;
+}
+
+.simonta-registry-page button:disabled {
+  cursor: not-allowed;
+}
+
+/* Dark theme: keep grid lines and badge labels readable, not muddy. */
+[data-theme="dark"] .simonta-registry-page .simonta-registry-stat,
+[data-theme="dark"] .simonta-registry-page .simonta-registry-panel,
+[data-theme="dark"] .simonta-registry-page .simonta-registry-modal {
+  background: var(--simonta-surface) !important;
+  border-color: var(--simonta-border-strong) !important;
+  color: var(--simonta-text) !important;
+  box-shadow: var(--simonta-shadow-card) !important;
+}
+
+[data-theme="dark"] .simonta-registry-page .simonta-registry-toolbar,
+[data-theme="dark"] .simonta-registry-page .simonta-registry-modal > div:first-child {
+  background: var(--simonta-surface-muted) !important;
+  border-color: var(--simonta-border) !important;
+}
+
+[data-theme="dark"] .simonta-registry-page .simonta-registry-table,
+[data-theme="dark"] .simonta-registry-page .simonta-registry-table-wrap,
+[data-theme="dark"] .simonta-registry-page .simonta-registry-mobile-list,
+[data-theme="dark"] .simonta-registry-page .simonta-registry-form-grid {
+  background: var(--simonta-surface) !important;
+}
+
+[data-theme="dark"] .simonta-registry-page .simonta-registry-table thead th {
+  background: #263750 !important;
+  color: #e7edf5 !important;
+  border-color: var(--simonta-border-strong) !important;
+}
+
+[data-theme="dark"] .simonta-registry-page .simonta-registry-table tbody td {
+  background: #172235 !important;
+  color: #c4d0df !important;
+  border-color: var(--simonta-border) !important;
+}
+
+[data-theme="dark"] .simonta-registry-page .simonta-registry-table tbody tr:nth-child(even) td,
+[data-theme="dark"] .simonta-registry-page .simonta-registry-mobile-list > article:nth-child(even) {
+  background: #1b2a40 !important;
+}
+
+[data-theme="dark"] .simonta-registry-page .simonta-registry-table tbody tr:hover td,
+[data-theme="dark"] .simonta-registry-page .simonta-registry-mobile-list > article:hover {
+  background: #263750 !important;
+}
+
+[data-theme="dark"] .simonta-registry-page .simonta-registry-mobile-list > article + article {
+  border-color: var(--simonta-border) !important;
+}
+
+[data-theme="dark"] .simonta-registry-page input:not([type="checkbox"]):not([type="radio"]),
+[data-theme="dark"] .simonta-registry-page select,
+[data-theme="dark"] .simonta-registry-page textarea {
+  background: #111c2d !important;
+  color: var(--simonta-text) !important;
+  border-color: var(--simonta-border-strong) !important;
+}
+
+[data-theme="dark"] .simonta-registry-page select option {
+  background: #172235 !important;
+  color: var(--simonta-text) !important;
+}
+
+[data-theme="dark"] .simonta-registry-page span[class*="border-[#82918B]"] {
+  color: #a9e3c8 !important;
+  border-color: rgb(102 177 143 / 55%) !important;
+}
+
+[data-theme="dark"] .simonta-registry-page span[class*="border-[#963746]"] {
+  color: #f2b0ba !important;
+  border-color: rgb(214 111 129 / 55%) !important;
+}
+
+[data-theme="dark"] .simonta-registry-page [role="status"] {
+  background: rgb(71 153 119 / 15%) !important;
+  border-color: rgb(102 177 143 / 45%) !important;
+  color: #a9e3c8 !important;
+}
+
+[data-theme="dark"] .simonta-registry-page [role="alert"] {
+  background: rgb(150 55 70 / 18%) !important;
+  border-color: rgb(214 111 129 / 45%) !important;
+  color: #f2b0ba !important;
+}
+
+@media (max-width: 767px) {
+  .simonta-registry-hero h1 {
+    font-size: clamp(2.5rem, 11vw, 3.35rem) !important;
+  }
+
+  .simonta-registry-stat {
+    min-height: 132px;
+    padding: 17px !important;
+  }
+
+  .simonta-registry-panel > .simonta-registry-toolbar,
+  .simonta-registry-panel > div:first-child {
+    padding: 16px !important;
+  }
+
+  .simonta-registry-modal {
+    width: 100%;
+    max-height: 92vh;
+  }
+}
+
+.simonta-registry-filter-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: end;
+  gap: 12px;
+  padding-top: 16px;
+  border-top: 1px solid var(--simonta-border);
+}
+
+.simonta-registry-filter-row > div {
+  min-width: min(180px, 100%);
+}
+
+.simonta-registry-modal-header {
+  background: var(--simonta-surface-muted);
+  border-color: var(--simonta-border) !important;
+}
+
+[data-theme="dark"] .simonta-registry-page .simonta-registry-modal-header {
+  background: var(--simonta-surface-muted) !important;
+  border-color: var(--simonta-border) !important;
+}
+
+@media (max-width: 639px) {
+  .simonta-registry-filter-row > div {
+    flex: 1 1 100%;
+  }
+
+  .simonta-registry-filter-row select {
+    width: 100%;
+  }
+}

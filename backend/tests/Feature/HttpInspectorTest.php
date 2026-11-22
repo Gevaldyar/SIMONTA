@@ -280,4 +280,95 @@ class HttpInspectorTest extends TestCase
             'https://example.com'
         );
     }
+    public function test_inspector_extracts_japanese_title_from_utf8_without_charset(): void
+{
+    $title = 'ペルソナ４ リバイバル｜アトラス';
+
+    $inspector = $this->createInspector([
+        [
+            'status_code' => 200,
+            'headers' => [
+                'content-type' => ['text/html'],
+            ],
+            'body' => '<!DOCTYPE html>
+                <html>
+                <head>
+                    <title>' . $title . '</title>
+                </head>
+                <body>テストページ</body>
+                </html>',
+        ],
+    ]);
+
+    $result = $inspector->inspect('https://example.com');
+
+    $this->assertSame(200, $result['status_code']);
+    $this->assertSame($title, $result['page_title']);
+}
+public function test_inspector_extracts_japanese_title_with_utf8_http_charset(): void
+{
+    $title = '日本語のウェブサイト';
+
+    $inspector = $this->createInspector([
+        [
+            'status_code' => 200,
+            'headers' => [
+                'content-type' => ['text/html; charset=UTF-8'],
+            ],
+            'body' => '<!DOCTYPE html>
+                <html>
+                <head>
+                    <title>' . $title . '</title>
+                </head>
+                <body>こんにちは</body>
+                </html>',
+        ],
+    ]);
+
+    $result = $inspector->inspect('https://example.com');
+
+    $this->assertSame($title, $result['page_title']);
+    $this->assertSame(200, $result['status_code']);
+}
+public function test_inspector_converts_shift_jis_html_to_utf8(): void
+{
+    $title = 'ペルソナ４ リバイバル｜アトラス';
+
+    $html = '<!DOCTYPE html>
+        <html>
+        <head>
+            <title>' . $title . '</title>
+        </head>
+        <body>日本語のテストページ</body>
+        </html>';
+
+    $shiftJisHtml = mb_convert_encoding(
+        $html,
+        'SJIS-win',
+        'UTF-8'
+    );
+
+    $inspector = $this->createInspector([
+        [
+            'status_code' => 200,
+            'headers' => [
+                'content-type' => ['text/html; charset=Shift_JIS'],
+            ],
+            'body' => $shiftJisHtml,
+        ],
+    ]);
+
+    $result = $inspector->inspect('https://example.com');
+
+    $this->assertSame(200, $result['status_code']);
+
+    // Hasil harus kembali menjadi teks UTF-8 yang benar.
+    $this->assertSame($title, $result['page_title']);
+
+    // Pastikan hasilnya valid sebagai UTF-8.
+    $this->assertSame(
+        1,
+        preg_match('//u', $result['page_title'])
+    );
+}
 }

@@ -1,0 +1,426 @@
+/* =========================================================
+   SIMONTA NAVIGATION SHELL REDESIGN
+   Scope: existing sidebar + redesigned Topbar.
+   This stylesheet deliberately keeps the existing routes,
+   navigation groups, NotificationCenter and theme state.
+   ========================================================= */
+
+/* ---------- Sidebar foundation ---------- */
+[data-theme] aside[aria-label="Navigasi utama SIMONTA"] {
+  background:
+    radial-gradient(circle at 0% 0%, rgb(150 55 70 / 14%), transparent 34%),
+    linear-gradient(180deg, #19263a 0%, #142033 54%, #111b2c 100%) !important;
+  border-right: 1px solid rgb(202 180 137 / 30%) !important;
+  box-shadow: 10px 0 32px rgb(15 23 42 / 8%);
+  scrollbar-color: #52627a #142033;
+  scrollbar-width: thin;
+}
+
+[data-theme] aside[aria-label="Navigasi utama SIMONTA"]::-webkit-scrollbar {
+  width: 6px;
+}
+
+[data-theme] aside[aria-label="Navigasi utama SIMONTA"]::-webkit-scrollbar-track {
+  background: #142033;
+}
+
+[data-theme] aside[aria-label="Navigasi utama SIMONTA"]::-webkit-scrollbar-thumb {
+  border-radius: 10px;
+  background: #52627a;
+}
+
+/* Brand row */
+[data-theme] aside[aria-label="Navigasi utama SIMONTA"] > div:first-child {
+  min-height: 94px;
+  padding-top: 18px;
+  padding-bottom: 18px;
+  border-bottom: 1px solid rgb(148 163 184 / 18%) !important;
+  background: rgb(10 18 31 / 20%);
+}
+
+[data-theme] aside[aria-label="Navigasi utama SIMONTA"] > div:first-child button {
+  border-color: rgb(202 180 137 / 34%) !important;
+  border-radius: 10px;
+  color: #d5c39f !important;
+}
+
+[data-theme] aside[aria-label="Navigasi utama SIMONTA"] > div:first-child button:hover {
+  border-color: #c9ad79 !important;
+  background: rgb(201 173 121 / 10%) !important;
+  color: #fff !important;
+}
+
+/* Navigation region and section spacing */
+[data-theme] aside[aria-label="Navigasi utama SIMONTA"] > div:nth-child(2) {
+  padding: 22px 13px 26px;
+}
+
+[data-theme] aside[aria-label="Navigasi utama SIMONTA"] > div:nth-child(2) > div {
+  margin-bottom: 23px;
+  padding-bottom: 5px;
+}
+
+[data-theme] aside[aria-label="Navigasi utama SIMONTA"] > div:nth-child(2) > div > p {
+  margin-bottom: 10px;
+  padding-left: 12px;
+  color: #c9ad79 !important;
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: .2em;
+  line-height: 1.4;
+}
+
+[data-theme] aside[aria-label="Navigasi utama SIMONTA"] nav {
+  display: grid;
+  gap: 5px;
+}
+
+[data-theme] aside[aria-label="Navigasi utama SIMONTA"] nav a {
+  position: relative;
+  min-height: 46px;
+  gap: 12px;
+  padding: 10px 12px;
+  border: 1px solid transparent !important;
+  border-left: 1px solid transparent !important;
+  border-radius: 10px;
+  color: #b8c3d3 !important;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: .005em;
+  transition:
+    background-color 170ms ease,
+    border-color 170ms ease,
+    color 170ms ease,
+    transform 170ms ease;
+}
+
+[data-theme] aside[aria-label="Navigasi utama SIMONTA"] nav a:hover {
+  transform: translateX(2px);
+  border-color: rgb(201 173 121 / 20%) !important;
+  background: rgb(255 255 255 / 5%) !important;
+  color: #fff !important;
+}
+
+[data-theme] aside[aria-label="Navigasi utama SIMONTA"] nav a[aria-current="page"] {
+  border-color: rgb(201 173 121 / 36%) !important;
+  background: linear-gradient(100deg, rgb(150 55 70 / 32%), rgb(150 55 70 / 13%)) !important;
+  color: #fff !important;
+  box-shadow: inset 3px 0 0 #c9ad79, 0 5px 16px rgb(5 10 20 / 12%);
+}
+
+[data-theme] aside[aria-label="Navigasi utama SIMONTA"] nav a[aria-current="page"] svg {
+  color: #f0d7a2;
+}
+
+[data-theme] aside[aria-label="Navigasi utama SIMONTA"] nav a > span:nth-of-type(2) {
+  color: #8191a7 !important;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: .08em;
+}
+
+[data-theme] aside[aria-label="Navigasi utama SIMONTA"] nav a[aria-current="page"] > span:nth-of-type(2) {
+  color: #d6bd8c !important;
+}
+
+/* Sidebar footer / monitoring protocol */
+[data-theme] aside[aria-label="Navigasi utama SIMONTA"] > div:last-child {
+  padding: 17px 16px 19px;
+  border-top: 1px solid rgb(148 163 184 / 20%) !important;
+  background: rgb(8 15 27 / 18%);
+}
+
+[data-theme] aside[aria-label="Navigasi utama SIMONTA"] > div:last-child > div:first-child > p:first-child {
+  color: #c9ad79 !important;
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: .18em;
+}
+
+[data-theme] aside[aria-label="Navigasi utama SIMONTA"] > div:last-child > div:first-child > div {
+  border-color: rgb(201 173 121 / 30%) !important;
+  border-radius: 11px;
+  background: linear-gradient(145deg, rgb(38 53 75 / 86%), rgb(22 34 52 / 92%)) !important;
+  padding: 14px;
+}
+
+[data-theme] aside[aria-label="Navigasi utama SIMONTA"] > div:last-child > div:first-child > p:last-child {
+  color: #8191a7 !important;
+  font-size: 8px;
+  letter-spacing: .14em;
+}
+
+/* Minimized sidebar remains centered and legible. */
+@media (min-width: 768px) {
+  [data-theme] aside[aria-label="Navigasi utama SIMONTA"]:has(nav) nav a {
+    min-height: 46px;
+  }
+
+  [data-theme] aside[aria-label="Navigasi utama SIMONTA"] nav a[title] {
+    border-radius: 11px;
+  }
+}
+
+/* ---------- Topbar ---------- */
+.simonta-topbar {
+  min-height: 76px;
+  border-color: #d7dfeb;
+  background: rgb(255 255 255 / 94%);
+  color: #172235;
+  box-shadow: 0 4px 22px rgb(15 23 42 / 4%);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+}
+
+.simonta-topbar-divider {
+  background: #dbe2eb;
+}
+
+.simonta-topbar-kicker {
+  color: #963746;
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: .18em;
+  line-height: 1.3;
+}
+
+.simonta-topbar-slash {
+  color: #b8a27d;
+  font-family: Georgia, serif;
+  font-size: 13px;
+}
+
+.simonta-topbar-kicker-muted {
+  color: #66758a;
+}
+
+.simonta-topbar-subtitle {
+  color: #718096;
+  font-size: 11px;
+  font-weight: 500;
+}
+
+.simonta-topbar-session {
+  padding-right: 15px;
+  color: #506176;
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: .12em;
+  white-space: nowrap;
+}
+
+.simonta-session-indicator {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #829b91;
+  box-shadow: 0 0 0 4px rgb(130 155 145 / 13%), 0 0 10px rgb(130 155 145 / 45%);
+}
+
+.simonta-session-state {
+  margin-left: 3px;
+  padding: 4px 6px;
+  border: 1px solid #d5e1dc;
+  border-radius: 5px;
+  background: #f2f7f4;
+  color: #5a786c;
+  font-size: 8px;
+  letter-spacing: .1em;
+}
+
+.simonta-topbar-control,
+.simonta-topbar .simonta-icon-action {
+  border: 1px solid #d9e1eb !important;
+  border-radius: 10px;
+  background: #fff !important;
+  color: #40516a !important;
+  transition: border-color 170ms ease, background-color 170ms ease, color 170ms ease, transform 170ms ease;
+}
+
+.simonta-topbar-control:hover,
+.simonta-topbar .simonta-icon-action:hover {
+  transform: translateY(-1px);
+  border-color: #c9ad79 !important;
+  background: #f8f5ef !important;
+  color: #963746 !important;
+}
+
+.simonta-topbar-avatar {
+  border: 1px solid #b69a69;
+  border-radius: 10px;
+  background: linear-gradient(145deg, #26364d, #172235);
+  color: #f4ead5;
+  font-family: Georgia, 'Times New Roman', serif;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: .05em;
+  box-shadow: 0 3px 9px rgb(23 34 53 / 12%);
+}
+
+.simonta-topbar-user {
+  color: #243247;
+  font-size: 11px;
+  font-weight: 750;
+  line-height: 1.35;
+}
+
+.simonta-topbar-email {
+  margin-top: 2px;
+  color: #8491a2;
+  font-size: 9px;
+  line-height: 1.3;
+}
+
+.simonta-topbar-logout {
+  border: 1px solid #202d40;
+  border-radius: 9px;
+  background: #202d40;
+  color: #f5f6f8;
+  font-size: 11px;
+  font-weight: 700;
+  transition: transform 170ms ease, background-color 170ms ease, border-color 170ms ease;
+}
+
+.simonta-topbar-logout:hover:not(:disabled) {
+  transform: translateY(-1px);
+  border-color: #963746;
+  background: #963746;
+}
+
+.simonta-topbar-logout:disabled {
+  cursor: wait;
+  opacity: .65;
+}
+
+/* Notification dropdown adapts to the current global theme. */
+.simonta-topbar [role="dialog"] {
+  border-radius: 13px;
+  border-color: #d5deea !important;
+  background: #fff !important;
+  color: #243247;
+  box-shadow: 0 22px 60px rgb(15 23 42 / 18%);
+}
+
+[data-theme="dark"] .simonta-topbar {
+  border-color: #2c3b50;
+  background: rgb(15 23 36 / 96%);
+  color: #e7edf5;
+  box-shadow: 0 4px 24px rgb(0 0 0 / 18%);
+}
+
+[data-theme="dark"] .simonta-topbar-divider {
+  background: #33445b;
+}
+
+[data-theme="dark"] .simonta-topbar-kicker-muted,
+[data-theme="dark"] .simonta-topbar-subtitle,
+[data-theme="dark"] .simonta-topbar-email {
+  color: #9baac0;
+}
+
+[data-theme="dark"] .simonta-topbar-session {
+  color: #bac7d8;
+}
+
+[data-theme="dark"] .simonta-session-state {
+  border-color: #3c5a50;
+  background: #1d352d;
+  color: #a8c7b8;
+}
+
+[data-theme="dark"] .simonta-topbar-control,
+[data-theme="dark"] .simonta-topbar .simonta-icon-action {
+  border-color: #3a4b62 !important;
+  background: #1b2a40 !important;
+  color: #d8e2ef !important;
+}
+
+[data-theme="dark"] .simonta-topbar-control:hover,
+[data-theme="dark"] .simonta-topbar .simonta-icon-action:hover {
+  border-color: #b69a69 !important;
+  background: #263952 !important;
+  color: #f0d7a2 !important;
+}
+
+[data-theme="dark"] .simonta-topbar-user {
+  color: #edf2f8;
+}
+
+[data-theme="dark"] .simonta-topbar-logout {
+  border-color: #34445b;
+  background: #26364d;
+  color: #edf2f8;
+}
+
+[data-theme="dark"] .simonta-topbar-logout:hover:not(:disabled) {
+  border-color: #963746;
+  background: #963746;
+}
+
+[data-theme="dark"] .simonta-topbar [role="dialog"] {
+  border-color: #3a4b62 !important;
+  background: #172235 !important;
+  color: #e7edf5 !important;
+}
+
+[data-theme="dark"] .simonta-topbar [role="dialog"] [class*="bg-[#F6F2E9]"],
+[data-theme="dark"] .simonta-topbar [role="dialog"] [class*="bg-[#EAE3D7]"],
+[data-theme="dark"] .simonta-topbar [role="dialog"] [class*="bg-[#EEE8DA]"] {
+  background: #1d2b40 !important;
+}
+
+[data-theme="dark"] .simonta-topbar [role="dialog"] [class*="border-[#D8CFBF]"],
+[data-theme="dark"] .simonta-topbar [role="dialog"] [class*="border-[#CFC4B2]"] {
+  border-color: #354861 !important;
+}
+
+[data-theme="dark"] .simonta-topbar [role="dialog"] [class*="text-[#191A20]"],
+[data-theme="dark"] .simonta-topbar [role="dialog"] [class*="text-[#252B37]"],
+[data-theme="dark"] .simonta-topbar [role="dialog"] [class*="text-[#68645D]"],
+[data-theme="dark"] .simonta-topbar [role="dialog"] [class*="text-[#77736C]"],
+[data-theme="dark"] .simonta-topbar [role="dialog"] [class*="text-[#918879]"] {
+  color: #c1ccda !important;
+}
+
+[data-theme="dark"] .simonta-topbar [role="dialog"] [class*="text-[#963746]"] {
+  color: #e0a2ad !important;
+}
+
+@media (max-width: 640px) {
+  .simonta-topbar {
+    min-height: 68px;
+    gap: 8px;
+    padding-left: 12px;
+    padding-right: 12px;
+  }
+
+  .simonta-topbar-kicker {
+    font-size: 8px;
+    letter-spacing: .13em;
+  }
+
+  .simonta-topbar-subtitle {
+    font-size: 10px;
+  }
+
+  .simonta-topbar-avatar {
+    width: 35px;
+    height: 35px;
+    border-radius: 9px;
+    font-size: 11px;
+  }
+
+  .simonta-topbar-logout {
+    width: 38px;
+    padding-left: 0;
+    padding-right: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  [data-theme] aside[aria-label="Navigasi utama SIMONTA"] nav a,
+  .simonta-topbar-control,
+  .simonta-topbar-logout {
+    transition: none !important;
+  }
+}

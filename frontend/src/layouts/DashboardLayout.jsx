@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from 'react'
 import { Outlet, useNavigate } from 'react-router'
 
@@ -8,10 +7,22 @@ import { useAuth } from '../contexts/AuthContext'
 import SystemEntryTransition from '../components/layout/SystemEntryTransition.jsx'
 
 const ENTRY_TRANSITION_KEY = 'simonta-entry-transition'
+const THEME_STORAGE_KEY = 'simonta-theme'
+
+function getInitialTheme() {
+  try {
+    return localStorage.getItem(THEME_STORAGE_KEY) === 'dark' ? 'dark' : 'light'
+  } catch {
+    return 'light'
+  }
+}
 
 function DashboardLayout() {
   const { user, logout } = useAuth()
   const navigate = useNavigate()
+
+  // Theme untuk seluruh area administrator.
+  const [theme, setTheme] = useState(getInitialTheme)
 
   // State sidebar mobile.
   const [isSidebarOpen, setIsSidebarOpen] = useState(false)
@@ -47,6 +58,15 @@ function DashboardLayout() {
       return false
     }
   })
+
+  // Simpan pilihan tema agar tetap digunakan setelah halaman dimuat ulang.
+  useEffect(() => {
+    try {
+      localStorage.setItem(THEME_STORAGE_KEY, theme)
+    } catch {
+      // Aplikasi tetap berjalan jika localStorage tidak tersedia.
+    }
+  }, [theme])
 
   // Konsumsi penanda agar refresh tidak memutar animasi lagi.
   useEffect(() => {
@@ -107,9 +127,14 @@ function DashboardLayout() {
     setIsSidebarCollapsed((previous) => !previous)
   }
 
+  const toggleTheme = () => {
+    setTheme((current) => (current === 'dark' ? 'light' : 'dark'))
+  }
+
   return (
     <>
       <div
+        data-theme={theme}
         className={`
           min-h-screen bg-[#EEE9DD] text-[#191A20] md:flex
           ${showEntryTransition ? 'simonta-dashboard-enter' : ''}
@@ -142,6 +167,8 @@ function DashboardLayout() {
             isSidebarCollapsed={isSidebarCollapsed}
             onLogout={handleLogout}
             isLoggingOut={isLoggingOut}
+            theme={theme}
+            onToggleTheme={toggleTheme}
           />
 
           {/* Logout error */}

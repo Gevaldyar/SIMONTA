@@ -51,10 +51,12 @@ class ReportController extends Controller
         $query = Scan::query()
             ->with([
                 'website' => function ($websiteQuery) {
-                    $websiteQuery
-                        ->withTrashed()
-                        ->with('opd');
-                },
+    $websiteQuery
+        ->withTrashed()
+        ->with([
+            'opd' => fn ($opdQuery) => $opdQuery->withTrashed(),
+        ]);
+},
 
                 // Relasi yang benar pada model Scan.
                 'scanTechnologies.technology',
@@ -81,21 +83,40 @@ class ReportController extends Controller
             });
         }
 
-        if (! empty($validated['date_from'])) {
-            $query->whereDate(
-                'created_at',
-                '>=',
-                $validated['date_from']
-            );
-        }
+        // Filter berdasarkan waktu pemeriksaan:
+// completed_at jika sudah selesai,
+// created_at jika belum memiliki completed_at.
+if (! empty($validated['date_from'])) {
+    $dateFrom = \Illuminate\Support\Carbon::parse(
+        $validated['date_from']
+    )->startOfDay();
 
-        if (! empty($validated['date_to'])) {
-            $query->whereDate(
-                'created_at',
-                '<=',
-                $validated['date_to']
-            );
-        }
+    $query->where(function ($dateQuery) use ($dateFrom) {
+        $dateQuery
+            ->where('completed_at', '>=', $dateFrom)
+            ->orWhere(function ($fallbackQuery) use ($dateFrom) {
+                $fallbackQuery
+                    ->whereNull('completed_at')
+                    ->where('created_at', '>=', $dateFrom);
+            });
+    });
+}
+
+if (! empty($validated['date_to'])) {
+    $dateTo = \Illuminate\Support\Carbon::parse(
+        $validated['date_to']
+    )->endOfDay();
+
+    $query->where(function ($dateQuery) use ($dateTo) {
+        $dateQuery
+            ->where('completed_at', '<=', $dateTo)
+            ->orWhere(function ($fallbackQuery) use ($dateTo) {
+                $fallbackQuery
+                    ->whereNull('completed_at')
+                    ->where('created_at', '<=', $dateTo);
+            });
+    });
+}
 
         $filename = 'laporan-monitoring-simonta-'
             . now()->format('Ymd-His')
@@ -146,14 +167,20 @@ class ReportController extends Controller
                 */
 
                 $safeCsvValue = function ($value) {
-                    $value = (string) ($value ?? '');
+    $value = (string) ($value ?? '');
 
-                    if (preg_match('/^[\x00-\x20]*[=+\-@]/u', $value)) {
-                        return "'" . $value;
-                    }
+    // Placeholder kosong tidak perlu diproteksi.
+    if ($value === '-') {
+        return $value;
+    }
 
-                    return $value;
-                };
+    // Lindungi nilai yang berpotensi menjadi formula Excel.
+    if (preg_match('/^[\x00-\x20]*[=+\-@]/u', $value)) {
+        return "'" . $value;
+    }
+
+    return $value;
+};
 
                 /*
                 |--------------------------------------------------------------------------

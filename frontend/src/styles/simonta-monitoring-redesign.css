@@ -1,0 +1,475 @@
+/* SIMONTA — Monitoring Center & Scan Detail redesign.
+   Scoped to .simonta-monitoring-page; no API, timer, polling or scan logic changes. */
+
+.simonta-monitoring-page {
+  color: var(--simonta-text);
+}
+
+.simonta-monitoring-page .simonta-monitoring-hero {
+  border-color: var(--simonta-border-strong) !important;
+  padding-bottom: 30px;
+}
+
+.simonta-monitoring-page .simonta-monitoring-hero > div > div:first-child {
+  margin-bottom: 18px;
+}
+
+.simonta-monitoring-page .simonta-monitoring-hero h1 {
+  font-size: clamp(2.5rem, 5vw, 4rem);
+  line-height: 1.04;
+}
+
+.simonta-monitoring-page .simonta-monitoring-hero p:not(:first-child) {
+  max-width: 680px;
+}
+
+.simonta-monitoring-page .simonta-monitoring-summary {
+  border: 1px solid var(--simonta-border);
+  border-radius: 14px;
+  background: var(--simonta-surface);
+  padding: 20px;
+  box-shadow: var(--simonta-shadow-card);
+}
+
+.simonta-monitoring-page .simonta-monitoring-section-heading {
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  gap: 12px;
+  padding-bottom: 14px;
+  border-bottom: 1px solid var(--simonta-border);
+}
+
+.simonta-monitoring-page .simonta-monitoring-section-heading h2 {
+  font-size: 1.45rem;
+}
+
+.simonta-monitoring-page .simonta-monitoring-stat {
+  min-height: 150px;
+  border: 1px solid var(--simonta-border-strong) !important;
+  border-radius: 12px;
+  background: var(--simonta-surface-muted) !important;
+  box-shadow: none;
+}
+
+.simonta-monitoring-page .simonta-monitoring-stat:hover {
+  border-color: var(--simonta-gold) !important;
+  box-shadow: var(--simonta-shadow-card);
+}
+
+.simonta-monitoring-page .simonta-monitoring-stat > span:first-child {
+  color: color-mix(in srgb, var(--simonta-gold) 24%, transparent) !important;
+}
+
+.simonta-monitoring-page .simonta-monitoring-panel {
+  overflow: hidden;
+  border: 1px solid var(--simonta-border-strong) !important;
+  border-radius: 13px;
+  background: var(--simonta-surface) !important;
+  box-shadow: var(--simonta-shadow-card);
+}
+
+.simonta-monitoring-page .simonta-monitoring-panel-header {
+  background: var(--simonta-surface-muted);
+  border-color: var(--simonta-border-strong) !important;
+}
+
+.simonta-monitoring-page .simonta-monitoring-panel-header select,
+.simonta-monitoring-page .simonta-monitoring-panel-header input {
+  min-height: 42px;
+}
+
+.simonta-monitoring-page .simonta-monitoring-table-wrap {
+  background: var(--simonta-surface);
+}
+
+.simonta-monitoring-page .simonta-monitoring-table {
+  min-width: 940px;
+  border: 0 !important;
+  border-collapse: separate !important;
+  border-spacing: 0;
+  table-layout: fixed;
+}
+
+.simonta-monitoring-page .simonta-monitoring-table th {
+  padding: 15px 17px !important;
+  background: var(--simonta-surface-soft) !important;
+  border-right: 1px solid var(--simonta-border-strong) !important;
+  border-bottom: 2px solid var(--simonta-border-strong) !important;
+  color: var(--simonta-text-soft) !important;
+  font-size: 11px !important;
+  font-weight: 750 !important;
+  letter-spacing: .055em !important;
+  white-space: nowrap;
+}
+
+.simonta-monitoring-page .simonta-monitoring-table th:nth-child(1) { width: 29%; }
+.simonta-monitoring-page .simonta-monitoring-table th:nth-child(2) { width: 22%; }
+.simonta-monitoring-page .simonta-monitoring-table th:nth-child(3) { width: 17%; }
+.simonta-monitoring-page .simonta-monitoring-table th:nth-child(4) { width: 13%; }
+.simonta-monitoring-page .simonta-monitoring-table th:nth-child(5) { width: 19%; }
+
+.simonta-monitoring-page .simonta-monitoring-table td {
+  padding: 16px 17px !important;
+  border-right: 1px solid var(--simonta-border) !important;
+  border-bottom: 1px solid var(--simonta-border) !important;
+  color: var(--simonta-text-soft) !important;
+  font-size: 13px !important;
+  vertical-align: middle;
+}
+
+.simonta-monitoring-page .simonta-monitoring-table th:last-child,
+.simonta-monitoring-page .simonta-monitoring-table td:last-child {
+  border-right: 0 !important;
+}
+
+.simonta-monitoring-page .simonta-monitoring-table tbody tr:nth-child(even) td {
+  background: var(--simonta-surface-muted) !important;
+}
+
+.simonta-monitoring-page .simonta-monitoring-table tbody tr:hover td {
+  background: var(--simonta-surface-soft) !important;
+}
+
+.simonta-monitoring-page .simonta-monitoring-mobile-list > article {
+  padding: 20px;
+  background: var(--simonta-surface);
+}
+
+.simonta-monitoring-page .simonta-monitoring-mobile-list > article + article {
+  border-top: 1px solid var(--simonta-border-strong);
+}
+
+.simonta-monitoring-page .simonta-monitoring-mobile-list > article > div:first-child {
+  padding-bottom: 14px;
+  border-bottom: 1px solid var(--simonta-border);
+}
+
+.simonta-monitoring-page .simonta-monitoring-mobile-list > article > div:nth-child(2) {
+  padding: 12px;
+  border: 1px solid var(--simonta-border);
+  border-radius: 8px;
+  background: var(--simonta-surface-muted);
+}
+
+.simonta-monitoring-page .simonta-monitoring-history-panel > div:last-child > .simonta-monitoring-scan-row {
+  display: grid !important;
+  grid-template-columns: minmax(230px, .9fr) minmax(390px, 1.1fr);
+  align-items: center;
+  gap: 22px !important;
+  padding: 18px 22px !important;
+  background: var(--simonta-surface);
+}
+
+.simonta-monitoring-page .simonta-monitoring-scan-row + .simonta-monitoring-scan-row {
+  border-top: 1px solid var(--simonta-border-strong);
+}
+
+.simonta-monitoring-page .simonta-monitoring-scan-row:hover {
+  background: var(--simonta-surface-muted) !important;
+}
+
+.simonta-monitoring-page .simonta-monitoring-scan-row > div:first-child {
+  min-width: 0;
+  padding-right: 18px;
+  border-right: 1px solid var(--simonta-border-strong);
+}
+
+.simonta-monitoring-page .simonta-monitoring-scan-row > div:last-child {
+  display: grid;
+  grid-template-columns: minmax(145px, 1fr) auto;
+  align-items: center;
+  gap: 14px;
+  min-width: 0;
+}
+
+.simonta-monitoring-page .simonta-monitoring-scan-row > div:last-child > div:first-child {
+  color: var(--simonta-text-muted) !important;
+  font-size: 11px;
+  line-height: 1.45;
+}
+
+.simonta-monitoring-page .simonta-monitoring-scan-actions {
+  display: grid !important;
+  grid-template-columns: auto auto auto;
+  align-items: center;
+  gap: 12px !important;
+  white-space: nowrap;
+}
+
+.simonta-monitoring-page .simonta-monitoring-refresh-note {
+  border-color: var(--simonta-border-strong) !important;
+  padding-top: 15px;
+}
+
+.simonta-monitoring-page .simonta-monitoring-detail-modal {
+  display: flex;
+  flex-direction: column;
+  max-height: min(92vh, 980px);
+  overflow: hidden;
+  border: 1px solid var(--simonta-border-strong) !important;
+  border-radius: 14px;
+  background: var(--simonta-surface) !important;
+}
+
+.simonta-monitoring-page .simonta-monitoring-detail-header {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  flex-shrink: 0;
+  background: var(--simonta-surface-muted);
+  border-color: var(--simonta-border-strong) !important;
+}
+
+.simonta-monitoring-page .simonta-monitoring-detail-modal > div:nth-child(2) {
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+.simonta-monitoring-page .simonta-monitoring-detail-website {
+  border-color: var(--simonta-border-strong) !important;
+  padding-block: 18px;
+}
+
+.simonta-monitoring-page .simonta-monitoring-detail-metric {
+  min-height: 90px;
+  border-color: var(--simonta-border-strong) !important;
+  border-radius: 8px;
+  background: var(--simonta-surface-muted) !important;
+  padding: 14px !important;
+}
+
+.simonta-monitoring-page .simonta-monitoring-detail-timestamps {
+  padding: 14px;
+  border: 1px solid var(--simonta-border);
+  border-radius: 8px;
+  background: var(--simonta-surface-muted);
+}
+
+.simonta-monitoring-page .simonta-monitoring-detail-technologies {
+  border-color: var(--simonta-border-strong) !important;
+}
+
+.simonta-monitoring-page .simonta-monitoring-technology-row {
+  display: grid !important;
+  grid-template-columns: minmax(0, 1fr) minmax(150px, .55fr);
+  align-items: center;
+  gap: 18px !important;
+  border-color: var(--simonta-border-strong) !important;
+  border-radius: 8px;
+  background: var(--simonta-surface-muted) !important;
+}
+
+.simonta-monitoring-page .simonta-monitoring-technology-row > div:last-child {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  padding-left: 16px;
+  border-left: 1px solid var(--simonta-border-strong);
+}
+
+.simonta-monitoring-page .simonta-monitoring-response-details {
+  overflow: hidden;
+  border-color: var(--simonta-border-strong) !important;
+  border-radius: 8px;
+  background: var(--simonta-surface-muted);
+}
+
+.simonta-monitoring-page .simonta-monitoring-response-details summary {
+  padding: 14px 16px;
+  color: var(--simonta-text-soft) !important;
+  font-size: 11px !important;
+}
+
+.simonta-monitoring-page .simonta-monitoring-response-details summary:hover {
+  background: var(--simonta-surface-soft) !important;
+}
+
+.simonta-monitoring-page .simonta-monitoring-response-details pre {
+  max-height: 360px;
+  overflow: auto;
+  background: var(--simonta-surface-soft) !important;
+  border-color: var(--simonta-border-strong) !important;
+  color: var(--simonta-text-soft) !important;
+  font-size: 11px !important;
+}
+
+.simonta-monitoring-page .simonta-monitoring-detail-modal > div:last-child {
+  position: sticky;
+  bottom: 0;
+  z-index: 2;
+  flex-shrink: 0;
+  background: var(--simonta-surface-muted);
+  border-color: var(--simonta-border-strong) !important;
+}
+
+/* Dark mode: retain status semantics while lifting surfaces and dividers. */
+[data-theme="dark"] .simonta-monitoring-page .simonta-monitoring-summary,
+[data-theme="dark"] .simonta-monitoring-page .simonta-monitoring-panel,
+[data-theme="dark"] .simonta-monitoring-page .simonta-monitoring-stat,
+[data-theme="dark"] .simonta-monitoring-page .simonta-monitoring-detail-modal {
+  background: var(--simonta-surface) !important;
+  border-color: var(--simonta-border-strong) !important;
+  color: var(--simonta-text);
+}
+
+[data-theme="dark"] .simonta-monitoring-page .simonta-monitoring-panel-header,
+[data-theme="dark"] .simonta-monitoring-page .simonta-monitoring-stat,
+[data-theme="dark"] .simonta-monitoring-page .simonta-monitoring-detail-header,
+[data-theme="dark"] .simonta-monitoring-page .simonta-monitoring-detail-modal > div:last-child,
+[data-theme="dark"] .simonta-monitoring-page .simonta-monitoring-detail-metric,
+[data-theme="dark"] .simonta-monitoring-page .simonta-monitoring-detail-timestamps,
+[data-theme="dark"] .simonta-monitoring-page .simonta-monitoring-technology-row,
+[data-theme="dark"] .simonta-monitoring-page .simonta-monitoring-response-details,
+[data-theme="dark"] .simonta-monitoring-page .simonta-monitoring-response-details pre {
+  background: var(--simonta-surface-muted) !important;
+  border-color: var(--simonta-border-strong) !important;
+}
+
+[data-theme="dark"] .simonta-monitoring-page .simonta-monitoring-table th {
+  background: var(--simonta-surface-soft) !important;
+  color: var(--simonta-text) !important;
+  border-color: var(--simonta-border-strong) !important;
+}
+
+[data-theme="dark"] .simonta-monitoring-page .simonta-monitoring-table td {
+  background: var(--simonta-surface) !important;
+  color: var(--simonta-text-soft) !important;
+  border-color: var(--simonta-border) !important;
+}
+
+[data-theme="dark"] .simonta-monitoring-page .simonta-monitoring-table tbody tr:nth-child(even) td,
+[data-theme="dark"] .simonta-monitoring-page .simonta-monitoring-table tbody tr:hover td,
+[data-theme="dark"] .simonta-monitoring-page .simonta-monitoring-scan-row,
+[data-theme="dark"] .simonta-monitoring-page .simonta-monitoring-scan-row:hover,
+[data-theme="dark"] .simonta-monitoring-page .simonta-monitoring-mobile-list > article {
+  background: var(--simonta-surface-muted) !important;
+}
+
+[data-theme="dark"] .simonta-monitoring-page .simonta-monitoring-mobile-list > article + article,
+[data-theme="dark"] .simonta-monitoring-page .simonta-monitoring-scan-row + .simonta-monitoring-scan-row,
+[data-theme="dark"] .simonta-monitoring-page .simonta-monitoring-scan-row > div:first-child,
+[data-theme="dark"] .simonta-monitoring-page .simonta-monitoring-scan-actions,
+[data-theme="dark"] .simonta-monitoring-page .simonta-monitoring-technology-row > div:last-child {
+  border-color: var(--simonta-border-strong) !important;
+}
+
+[data-theme="dark"] .simonta-monitoring-page .simonta-monitoring-hero,
+[data-theme="dark"] .simonta-monitoring-page .simonta-monitoring-refresh-note,
+[data-theme="dark"] .simonta-monitoring-page .simonta-monitoring-detail-website,
+[data-theme="dark"] .simonta-monitoring-page .simonta-monitoring-detail-technologies {
+  border-color: var(--simonta-border-strong) !important;
+}
+
+[data-theme="dark"] .simonta-monitoring-page .simonta-monitoring-hero h1,
+[data-theme="dark"] .simonta-monitoring-page .simonta-monitoring-section-heading h2,
+[data-theme="dark"] .simonta-monitoring-page .simonta-monitoring-stat h3,
+[data-theme="dark"] .simonta-monitoring-page .simonta-monitoring-panel h2,
+[data-theme="dark"] .simonta-monitoring-page .simonta-monitoring-panel h3,
+[data-theme="dark"] .simonta-monitoring-page .simonta-monitoring-detail-modal h2,
+[data-theme="dark"] .simonta-monitoring-page .simonta-monitoring-detail-modal h3,
+[data-theme="dark"] .simonta-monitoring-page .simonta-monitoring-detail-modal p:not([class*="text-[#963746]"]) {
+  color: var(--simonta-text) !important;
+}
+
+[data-theme="dark"] .simonta-monitoring-page .simonta-monitoring-hero p,
+[data-theme="dark"] .simonta-monitoring-page .simonta-monitoring-stat p,
+[data-theme="dark"] .simonta-monitoring-page .simonta-monitoring-panel label,
+[data-theme="dark"] .simonta-monitoring-page .simonta-monitoring-panel th,
+[data-theme="dark"] .simonta-monitoring-page .simonta-monitoring-panel td,
+[data-theme="dark"] .simonta-monitoring-page .simonta-monitoring-detail-modal label,
+[data-theme="dark"] .simonta-monitoring-page .simonta-monitoring-detail-modal summary,
+[data-theme="dark"] .simonta-monitoring-page .simonta-monitoring-detail-modal pre {
+  color: var(--simonta-text-soft) !important;
+}
+
+[data-theme="dark"] .simonta-monitoring-page .simonta-monitoring-panel input,
+[data-theme="dark"] .simonta-monitoring-page .simonta-monitoring-panel select {
+  background: var(--simonta-surface) !important;
+  color: var(--simonta-text) !important;
+  border-color: var(--simonta-border-strong) !important;
+}
+
+[data-theme="dark"] .simonta-monitoring-page .simonta-monitoring-detail-metric p,
+[data-theme="dark"] .simonta-monitoring-page .simonta-monitoring-detail-timestamps p {
+  color: var(--simonta-text-soft) !important;
+}
+
+@media (max-width: 1023px) {
+  .simonta-monitoring-page .simonta-monitoring-history-panel > div:last-child > .simonta-monitoring-scan-row {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 14px !important;
+  }
+
+  .simonta-monitoring-page .simonta-monitoring-scan-row > div:first-child {
+    padding-right: 0;
+    border-right: 0;
+  }
+
+  .simonta-monitoring-page .simonta-monitoring-scan-row > div:last-child {
+    padding-top: 12px;
+    border-top: 1px solid var(--simonta-border);
+  }
+}
+
+@media (max-width: 767px) {
+  .simonta-monitoring-page {
+    gap: 22px;
+  }
+
+  .simonta-monitoring-page .simonta-monitoring-hero h1 {
+    font-size: clamp(2.25rem, 11vw, 3rem);
+  }
+
+  .simonta-monitoring-page .simonta-monitoring-summary {
+    padding: 14px;
+  }
+
+  .simonta-monitoring-page .simonta-monitoring-stat {
+    min-height: 128px;
+    padding: 16px;
+  }
+
+  .simonta-monitoring-page .simonta-monitoring-panel-header {
+    padding: 16px !important;
+  }
+
+  .simonta-monitoring-page .simonta-monitoring-scan-row {
+    padding: 16px !important;
+  }
+
+  .simonta-monitoring-page .simonta-monitoring-scan-row > div:last-child {
+    grid-template-columns: minmax(0, 1fr);
+    align-items: start;
+  }
+
+  .simonta-monitoring-page .simonta-monitoring-scan-actions {
+    display: flex !important;
+    flex-wrap: wrap;
+    justify-content: space-between;
+  }
+
+  .simonta-monitoring-page .simonta-monitoring-detail-modal {
+    max-height: 94vh;
+    border-radius: 11px;
+  }
+
+  .simonta-monitoring-page .simonta-monitoring-detail-header {
+    padding: 16px !important;
+  }
+
+  .simonta-monitoring-page .simonta-monitoring-detail-modal > div:nth-child(2) {
+    padding: 16px !important;
+  }
+
+  .simonta-monitoring-page .simonta-monitoring-technology-row {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .simonta-monitoring-page .simonta-monitoring-technology-row > div:last-child {
+    padding: 12px 0 0;
+    border-left: 0;
+    border-top: 1px solid var(--simonta-border-strong);
+  }
+}

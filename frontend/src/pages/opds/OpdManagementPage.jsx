@@ -1,4 +1,3 @@
-
 import { useCallback, useEffect, useState } from 'react'
 
 import api from '../../services/api'
@@ -367,10 +366,10 @@ function OpdManagementPage() {
   ]
 
   return (
-    <div className="simonta-page-enter space-y-8">
+    <div className="simonta-page-enter simonta-registry-page simonta-opd-page space-y-8">
 
       {/* Page heading */}
-      <section className="relative overflow-hidden border-b border-[#CFC4B2] pb-7">
+      <section className="simonta-registry-hero relative overflow-hidden border-b border-[#CFC4B2] pb-7">
         <div className="pointer-events-none absolute -right-2 -top-12 select-none font-serif text-[150px] leading-none text-[#E7DFD1]">
           02
         </div>
@@ -444,11 +443,11 @@ function OpdManagementPage() {
       )}
 
       {/* Summary */}
-      <section className="grid gap-3 sm:grid-cols-3">
+      <section className="simonta-registry-stats grid gap-3 sm:grid-cols-3">
         {statCards.map((card, index) => (
           <article
             key={card.index}
-            className="simonta-card-enter relative overflow-hidden border border-[#D8CFBF] bg-[#F7F4EC] p-5 transition duration-300 hover:-translate-y-1 hover:border-[#B69A69]"
+            className="simonta-card-enter simonta-registry-stat relative overflow-hidden border border-[#D8CFBF] bg-[#F7F4EC] p-5 transition duration-300 hover:-translate-y-1 hover:border-[#B69A69]"
             style={{ '--stagger-index': index }}
           >
             <span className="absolute -right-1 -top-6 font-serif text-[75px] leading-none text-[#E8E0D2]">
@@ -471,9 +470,9 @@ function OpdManagementPage() {
       </section>
 
       {/* Registry table */}
-      <section className="border border-[#D8CFBF] bg-[#F7F4EC]">
+      <section className="simonta-registry-panel border border-[#D8CFBF] bg-[#F7F4EC]">
 
-        <div className="flex flex-col justify-between gap-4 border-b border-[#D8CFBF] p-5 lg:flex-row lg:items-center">
+        <div className="simonta-registry-toolbar flex flex-col justify-between gap-4 border-b border-[#D8CFBF] p-5 lg:flex-row lg:items-center">
           <div>
             <p className="text-[9px] font-semibold tracking-[0.2em] text-[#963746]">
               ORGANIZATION DATABASE / 01
@@ -529,8 +528,8 @@ function OpdManagementPage() {
         </div>
 
         {/* Desktop table */}
-        <div className="hidden overflow-x-auto md:block">
-          <table className="w-full min-w-[850px] border-collapse text-left">
+        <div className="simonta-registry-table-wrap hidden overflow-x-auto md:block">
+          <table className="simonta-registry-table w-full min-w-[850px] border-collapse text-left">
             <thead>
               <tr className="border-b border-[#D8CFBF] bg-[#F1EBDD]">
                 <th className="px-5 py-4 text-[9px] font-bold tracking-[0.15em] text-[#817A70]">
@@ -670,7 +669,7 @@ function OpdManagementPage() {
         </div>
 
         {/* Mobile organization cards */}
-        <div className="divide-y divide-[#D8CFBF] md:hidden">
+        <div className="simonta-registry-mobile-list divide-y divide-[#D8CFBF] md:hidden">
           {loading ? (
             [1, 2, 3].map((item) => (
               <div key={item} className="p-5">
@@ -786,9 +785,9 @@ function OpdManagementPage() {
             role="dialog"
             aria-modal="true"
             aria-labelledby="opd-modal-title"
-            className="simonta-card-enter my-auto w-full max-w-2xl border border-[#B69A69]/50 bg-[#EEE9DD] shadow-[0_25px_80px_rgba(0,0,0,0.25)]"
+            className="simonta-card-enter simonta-registry-modal my-auto w-full max-w-2xl border border-[#B69A69]/50 bg-[#EEE9DD] shadow-[0_25px_80px_rgba(0,0,0,0.25)]"
           >
-            <div className="flex items-start justify-between border-b border-[#D8CFBF] p-5 sm:p-7">
+            <div className="simonta-registry-modal-header flex items-start justify-between border-b border-[#D8CFBF] p-5 sm:p-7">
               <div>
                 <p className="text-[9px] font-bold tracking-[0.2em] text-[#963746]">
                   ORGANIZATION REGISTRY
@@ -820,7 +819,7 @@ function OpdManagementPage() {
             </div>
 
             <form onSubmit={handleSubmit}>
-              <div className="grid gap-5 p-5 sm:grid-cols-2 sm:p-7">
+              <div className="simonta-registry-form-grid grid gap-5 p-5 sm:grid-cols-2 sm:p-7">
 
                 <div className="sm:col-span-2">
                   <FormField

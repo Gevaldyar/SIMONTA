@@ -12,11 +12,13 @@ use Throwable;
 class WebsiteScanService
 {
     public function __construct(
-        private readonly HttpInspector $httpInspector,
-        private readonly TechnologyDetectionService $detectionService,
-        private readonly TechnologyChangeDetectionService $changeDetectionService,
-        private readonly ScanNotificationService $notificationService
-    ) {}
+    private readonly HttpInspector $httpInspector,
+    private readonly TechnologyDetectionService $detectionService,
+    private readonly TechnologyChangeDetectionService $changeDetectionService,
+    private readonly ScanNotificationService $notificationService,
+    private readonly WebsiteSecurityAssessmentService $securityAssessmentService,
+    private readonly SecurityHeadersAuditService $securityHeadersAuditService
+) {}
 
     /**
      * Membuat dan langsung menjalankan pemeriksaan website.
@@ -146,15 +148,28 @@ class WebsiteScanService
 
         try {
             // 1. Periksa website menggunakan HTTP GET.
-            $fingerprint = $this->httpInspector->inspect(
-                $claim['website_url']
-            );
+$fingerprint = $this->httpInspector->inspect(
+    $claim['website_url']
+);
+
+// 2. Analisis indikator keamanan dari HTML.
+$securityAssessment = $this->securityAssessmentService->assess(
+    $fingerprint
+);
+
+// 3. Audit konfigurasi HTTP Security Headers.
+$securityHeadersAudit = $this->securityHeadersAuditService->assess(
+    $fingerprint['security_headers'] ?? [],
+    $fingerprint['final_url'] ?? $claim['website_url']
+);
 
             // 2. Simpan hasil dan perubahan teknologi.
             DB::transaction(function () use (
-                $scan,
-                $fingerprint
-            ): void {
+    $scan,
+    $fingerprint,
+    $securityAssessment,
+    $securityHeadersAudit
+): void {
                 $this->detectionService->detect(
                     $scan,
                     $fingerprint
@@ -184,18 +199,30 @@ class WebsiteScanService
                     'error_message' => null,
 
                     'metadata' => [
-                        'content_type' =>
-                            $fingerprint['content_type'],
+    'content_type' =>
+        $fingerprint['content_type'],
 
-                        'body_size_bytes' =>
-                            $fingerprint['body_size_bytes'],
+    'body_size_bytes' =>
+        $fingerprint['body_size_bytes'],
 
-                        'redirect_count' =>
-                            $fingerprint['redirect_count'],
+    'redirect_count' =>
+        $fingerprint['redirect_count'],
 
-                        'headers' =>
-                            $fingerprint['headers'],
-                    ],
+    'headers' =>
+    $fingerprint['headers'],
+
+'security_headers' =>
+    $fingerprint['security_headers'] ?? [],
+
+'tls_certificate' =>
+    $fingerprint['tls_certificate'] ?? null,
+
+'security_assessment' =>
+    $securityAssessment,
+
+    'security_headers_audit' =>
+    $securityHeadersAudit,
+],
                 ])->save();
 
                 // 3. Bandingkan dengan scan sebelumnya.

@@ -9,6 +9,15 @@ const INITIAL_DATA = {
   latestScan: null,
   distribution: [],
   recentScans: [],
+
+  websiteHealth: {
+    summary: {},
+    websites: [],
+  },
+
+  securityAssessment: {
+    summary: {},
+  },
 }
 
 const CATEGORY_LABELS = {
@@ -117,6 +126,59 @@ function formatDate(value) {
     dateStyle: 'medium',
     timeStyle: 'short',
   }).format(date)
+}
+
+function formatPercent(value) {
+  if (value === null || value === undefined) return '—'
+
+  return `${Number(value).toFixed(2)}%`
+}
+
+function formatResponseTime(value) {
+  if (value === null || value === undefined) return '—'
+
+  return `${formatNumber(value)} ms`
+}
+
+const HEALTH_STATUS = {
+  online: {
+    label: 'ONLINE',
+    className: 'border-[#82918B]/60 bg-[#82918B]/15 text-[#50665C]',
+    dot: 'bg-[#82918B]',
+  },
+  degraded: {
+    label: 'DEGRADED',
+    className: 'border-[#B69A69]/60 bg-[#B69A69]/15 text-[#816D43]',
+    dot: 'bg-[#B69A69]',
+  },
+  down: {
+    label: 'DOWN',
+    className: 'border-[#963746]/30 bg-[#963746]/10 text-[#963746]',
+    dot: 'bg-[#963746]',
+  },
+  checking: {
+    label: 'CHECKING',
+    className: 'border-[#82918B]/60 bg-[#82918B]/15 text-[#50665C]',
+    dot: 'bg-[#82918B]',
+  },
+  unknown: {
+    label: 'UNKNOWN',
+    className: 'border-[#D8CFBF] bg-[#D8CFBF]/20 text-[#77736C]',
+    dot: 'bg-[#948B7D]',
+  },
+}
+
+function HealthBadge({ status }) {
+  const config = HEALTH_STATUS[status] || HEALTH_STATUS.unknown
+
+  return (
+    <span
+      className={`inline-flex items-center gap-2 border px-2.5 py-1.5 text-[9px] font-bold tracking-wider ${config.className}`}
+    >
+      <span className={`size-1.5 rounded-full ${config.dot}`} />
+      {config.label}
+    </span>
+  )
 }
 
 function MetricPanel({
@@ -323,18 +385,18 @@ function TechnologyDistribution({ distribution }) {
           00
         </div>
 
-        <h3 className="mt-3 font-serif text-xl text-[#EEE9DD]">
+        <h3 className="mt-3 font-serif text-xl text-[#191A20]">
           No Detection Records
         </h3>
 
-        <p className="mt-2 max-w-xs text-xs leading-6 text-[#B8B4AA]">
+        <p className="mt-2 max-w-xs text-xs leading-6 text-[#77736C]">
           Katalog teknologi telah tersedia, tetapi belum ada
           hasil identifikasi yang dapat ditampilkan.
         </p>
 
         <Link
           to="/technologies"
-          className="mt-5 inline-flex items-center gap-2 border-b border-[#B69A69] pb-1 text-[9px] font-bold tracking-[0.15em] text-[#B69A69] transition hover:text-white"
+          className="mt-5 inline-flex items-center gap-2 border-b border-[#B69A69] pb-1 text-[9px] font-bold tracking-[0.15em] text-[#963746] transition hover:text-[#762B37]"
         >
           EXPLORE TECHNOLOGY CATALOG
           <Icon name="arrow" size={13} />
@@ -359,23 +421,23 @@ function TechnologyDistribution({ distribution }) {
           >
             <div className="mb-2 flex items-center justify-between gap-3">
               <div className="min-w-0">
-                <p className="truncate text-xs font-medium text-[#EEE9DD]">
+                <p className="truncate text-xs font-semibold text-[#252B37]">
                   {CATEGORY_LABELS[item.category] || item.category}
                 </p>
 
-                <p className="mt-1 text-[9px] text-[#B8B4AA]">
+                <p className="mt-1 text-[10px] text-[#817A70]">
                   {formatNumber(item.technologies_count)} technologies
                 </p>
               </div>
 
-              <span className="font-serif text-xl text-[#B69A69]">
+              <span className="font-serif text-xl text-[#963746]">
                 {formatNumber(count)}
               </span>
             </div>
 
-            <div className="h-1 overflow-hidden bg-[#3E434C]">
+            <div className="h-2 overflow-hidden border border-[#D8E0EA] bg-[#EEF2F6]">
               <div
-                className="h-full bg-[#B69A69] transition-all duration-1000 ease-out"
+                className="h-full bg-[#963746] transition-all duration-1000 ease-out"
                 style={{ width: `${percentage}%` }}
               />
             </div>
@@ -383,11 +445,443 @@ function TechnologyDistribution({ distribution }) {
         )
       })}
 
-      <p className="border-t border-[#55515A] pt-4 text-[9px] leading-5 text-[#A9A8A3]">
+      <p className="border-t border-[#D8E0EA] pt-4 text-[10px] leading-5 text-[#77736C]">
         Jumlah merupakan pasangan teknologi dan website berdasarkan
         hasil pemeriksaan completed terbaru per website.
       </p>
     </div>
+  )
+}
+
+function WebsiteHealthSection({ health, loading }) {
+  const summary = health.summary || {}
+  const websites = health.websites || []
+
+  const statusCards = [
+    {
+      label: 'ONLINE',
+      value: summary.online,
+      color: 'text-[#50665C]',
+      dot: 'bg-[#82918B]',
+    },
+    {
+      label: 'DEGRADED',
+      value: summary.degraded,
+      color: 'text-[#816D43]',
+      dot: 'bg-[#B69A69]',
+    },
+    {
+      label: 'DOWN',
+      value: summary.down,
+      color: 'text-[#963746]',
+      dot: 'bg-[#963746]',
+    },
+    {
+      label: 'CHECKING',
+      value: summary.checking,
+      color: 'text-[#50665C]',
+      dot: 'bg-[#82918B]',
+    },
+    {
+      label: 'UNKNOWN',
+      value: summary.unknown,
+      color: 'text-[#77736C]',
+      dot: 'bg-[#948B7D]',
+    },
+  ]
+
+  return (
+    <section className="space-y-5">
+      <div className="flex flex-col justify-between gap-3 sm:flex-row sm:items-end">
+        <div>
+          <p className="text-[10px] font-semibold tracking-[0.18em] text-[#963746]">
+            INFRASTRUCTURE STATUS / 04
+          </p>
+
+          <h2 className="mt-1 font-serif text-2xl text-[#191A20]">
+            Website Health Overview
+          </h2>
+
+          <p className="mt-1 text-[10px] text-[#817A70]">
+            Kondisi kesehatan website OPD berdasarkan hasil pemeriksaan terakhir.
+          </p>
+        </div>
+
+        <p className="text-[9px] tracking-widest text-[#8B8479]">
+          {formatNumber(summary.total_websites)} REGISTERED WEBSITES
+        </p>
+      </div>
+
+      {/* Health status counters */}
+      <div className="grid grid-cols-2 gap-px overflow-hidden rounded-lg border border-[#CBD5E1] bg-[#CBD5E1] sm:grid-cols-3 lg:grid-cols-5">
+        {statusCards.map((item) => (
+          <div
+            key={item.label}
+            className="bg-[#F7F4EC] px-4 py-5 transition hover:bg-white"
+          >
+            <div className="flex items-center gap-2">
+              <span className={`size-2 rounded-full ${item.dot}`} />
+
+              <p className="text-[9px] font-bold tracking-[0.14em] text-[#817A70]">
+                {item.label}
+              </p>
+            </div>
+
+            <p className={`mt-3 font-serif text-3xl ${item.color}`}>
+              {loading && summary[item.label.toLowerCase()] === undefined
+                ? '—'
+                : formatNumber(item.value)}
+            </p>
+          </div>
+        ))}
+      </div>
+
+      {/* Performance metrics */}
+      <div className="grid gap-3 sm:grid-cols-3">
+        <article className="rounded-lg border border-[#D6DEE8] bg-white p-5">
+          <p className="text-[9px] font-bold tracking-[0.15em] text-[#526176]">
+            UPTIME / LAST 24 HOURS
+          </p>
+
+          <h3 className="mt-3 font-serif text-3xl text-[#191A20]">
+            {formatPercent(summary.uptime_24h_percent)}
+          </h3>
+
+          <p className="mt-2 text-[10px] text-[#817A70]">
+            {formatNumber(summary.successful_checks_24h)} dari{' '}
+            {formatNumber(summary.checks_24h)} pemeriksaan berhasil
+          </p>
+        </article>
+
+        <article className="rounded-lg border border-[#D6DEE8] bg-white p-5">
+          <p className="text-[9px] font-bold tracking-[0.15em] text-[#526176]">
+            UPTIME / LAST 7 DAYS
+          </p>
+
+          <h3 className="mt-3 font-serif text-3xl text-[#191A20]">
+            {formatPercent(summary.uptime_7d_percent)}
+          </h3>
+
+          <p className="mt-2 text-[10px] text-[#817A70]">
+            {formatNumber(summary.successful_checks_7d)} dari{' '}
+            {formatNumber(summary.checks_7d)} pemeriksaan berhasil
+          </p>
+        </article>
+
+        <article className="rounded-lg border border-[#D6DEE8] bg-white p-5">
+          <p className="text-[9px] font-bold tracking-[0.15em] text-[#526176]">
+            AVG. RESPONSE TIME / 7 DAYS
+          </p>
+
+          <h3 className="mt-3 font-serif text-3xl text-[#191A20]">
+            {formatResponseTime(summary.average_response_time_7d_ms)}
+          </h3>
+
+          <p className="mt-2 text-[10px] text-[#817A70]">
+            Rata-rata waktu respons pemeriksaan berhasil
+          </p>
+        </article>
+      </div>
+
+      {/* Website health registry */}
+      <article className="overflow-hidden border border-[#D8CFBF] bg-[#F7F4EC]">
+        <div className="flex flex-col justify-between gap-3 border-b border-[#D8CFBF] p-5 sm:flex-row sm:items-center">
+          <div>
+            <p className="text-[9px] font-semibold tracking-[0.2em] text-[#963746]">
+              WEBSITE DIAGNOSTICS
+            </p>
+
+            <h3 className="mt-2 font-serif text-xl text-[#191A20]">
+              Website Health Registry
+            </h3>
+          </div>
+
+          <Link
+            to="/websites"
+            className="inline-flex items-center gap-1 border-b border-[#B69A69] pb-1 text-[9px] font-bold tracking-wider text-[#963746] transition hover:text-[#762B37]"
+          >
+            MANAGE WEBSITES
+            <Icon name="arrow" size={13} />
+          </Link>
+        </div>
+
+        {websites.length === 0 ? (
+          <div className="flex min-h-[180px] flex-col items-center justify-center px-5 text-center">
+            <Icon name="globe" size={25} className="text-[#B69A69]" />
+
+            <h4 className="mt-4 font-serif text-lg text-[#191A20]">
+              No Website Data
+            </h4>
+
+            <p className="mt-2 max-w-sm text-xs leading-6 text-[#817A70]">
+              Belum ada website aktif yang dapat ditampilkan dalam pemantauan kesehatan.
+            </p>
+          </div>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full min-w-[980px] border-collapse text-left">
+              <thead>
+                <tr className="border-b border-[#C9D4E2] bg-[#EEF2F7]">
+                  {[
+                    'WEBSITE',
+                    'HEALTH STATUS',
+                    'HTTP',
+                    'RESPONSE',
+                    'UPTIME 24H',
+                    'UPTIME 7D',
+                    'MONITORING',
+                  ].map((heading) => (
+                    <th
+                      key={heading}
+                      className="border-r border-[#CBD5E1] px-4 py-3.5 text-[9px] font-bold tracking-[0.12em] text-[#526176] last:border-r-0"
+                    >
+                      {heading}
+                    </th>
+                  ))}
+                </tr>
+              </thead>
+
+              <tbody className="divide-y divide-[#D6DEE8]">
+                {websites.map((website) => (
+                  <tr
+                    key={website.id}
+                    className="transition odd:bg-white even:bg-[#F8FAFC] hover:bg-[#F1F5F9]"
+                  >
+                    <td className="max-w-[260px] border-r border-[#D6DEE8] px-4 py-4 align-middle last:border-r-0">
+                      <p className="truncate text-xs font-semibold text-[#252B37]">
+                        {website.name}
+                      </p>
+
+                      <p className="mt-1 truncate text-[9px] text-[#817A70]">
+                        {website.opd?.name || 'OPD tidak diketahui'}
+                      </p>
+
+                      <p className="mt-1 truncate text-[9px] text-[#A0988B]">
+                        {website.url}
+                      </p>
+                    </td>
+
+                    <td className="border-r border-[#D6DEE8] px-4 py-4 align-middle last:border-r-0">
+                      <HealthBadge status={website.health_status} />
+                    </td>
+
+                    <td className="border-r border-[#D6DEE8] px-4 py-4 text-[11px] text-[#526176] align-middle last:border-r-0">
+                      {website.last_scan?.http_status_code
+                        ? `HTTP ${website.last_scan.http_status_code}`
+                        : '—'}
+                    </td>
+
+                    <td className="border-r border-[#D6DEE8] px-4 py-4 text-[11px] text-[#526176] align-middle last:border-r-0">
+                      {formatResponseTime(
+                        website.last_scan?.response_time_ms
+                      )}
+                    </td>
+
+                    <td className="border-r border-[#D6DEE8] px-4 py-4 text-[11px] font-semibold text-[#50665C] align-middle last:border-r-0">
+                      {formatPercent(website.uptime_24h_percent)}
+                    </td>
+
+                    <td className="border-r border-[#D6DEE8] px-4 py-4 text-[11px] font-semibold text-[#50665C] align-middle last:border-r-0">
+                      {formatPercent(website.uptime_7d_percent)}
+                    </td>
+
+                    <td className="border-r border-[#D6DEE8] px-4 py-4 align-middle last:border-r-0">
+                      <span
+                        className={`text-[9px] font-bold tracking-wider ${
+                          website.monitoring_enabled
+                            ? 'text-[#50665C]'
+                            : 'text-[#963746]'
+                        }`}
+                      >
+                        {website.monitoring_enabled ? 'ENABLED' : 'DISABLED'}
+                      </span>
+
+                      <p className="mt-1 text-[9px] text-[#817A70]">
+                        {website.monitoring_interval_minutes
+                          ? `Every ${website.monitoring_interval_minutes} min`
+                          : 'No interval'}
+                      </p>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+
+        <div className="border-t border-[#D8CFBF] px-5 py-3">
+          <p className="text-[9px] leading-5 text-[#817A70]">
+            Uptime dihitung berdasarkan persentase pemeriksaan terminal yang berhasil
+            (HTTP 200–399) dibandingkan seluruh pemeriksaan terminal pada periode terkait.
+            Nilai ini merupakan metrik berbasis pemeriksaan, bukan pengukuran uptime kontinu.
+          </p>
+        </div>
+      </article>
+    </section>
+  )
+}
+
+function SecurityOverviewSection({ assessment, loading }) {
+  const summary = assessment?.summary || {}
+
+  const hasSummary = summary.total_websites !== undefined
+
+  const metrics = [
+    {
+      index: '01',
+      label: 'HIGH RISK',
+      value: summary.high,
+      description: 'Indikator risiko tinggi',
+      color: 'text-[#963746]',
+      dot: 'bg-[#963746]',
+      border: 'border-[#963746]/30',
+    },
+    {
+      index: '02',
+      label: 'NEED REVIEW',
+      value: summary.review,
+      description: 'Memerlukan verifikasi',
+      color: 'text-[#816D43]',
+      dot: 'bg-[#B69A69]',
+      border: 'border-[#B69A69]/40',
+    },
+    {
+      index: '03',
+      label: 'LOW RISK',
+      value: summary.low,
+      description: 'Risiko rendah terdeteksi',
+      color: 'text-[#50665C]',
+      dot: 'bg-[#82918B]',
+      border: 'border-[#82918B]/40',
+    },
+    {
+      index: '04',
+      label: 'UNKNOWN',
+      value: summary.unknown,
+      description: 'Belum dapat dianalisis',
+      color: 'text-[#77736C]',
+      dot: 'bg-[#948B7D]',
+      border: 'border-[#D8CFBF]',
+    },
+  ]
+
+  return (
+    <section className="space-y-5">
+      {/* Section heading */}
+      <div className="flex flex-col justify-between gap-3 sm:flex-row sm:items-end">
+        <div>
+          <p className="text-[10px] font-semibold tracking-[0.18em] text-[#963746]">
+            SECURITY INTELLIGENCE / 05
+          </p>
+
+          <h2 className="mt-1 font-serif text-2xl text-[#191A20]">
+            Security Overview
+          </h2>
+
+          <p className="mt-1 text-[10px] text-[#817A70]">
+            Ringkasan indikator keamanan berdasarkan hasil assessment
+            terbaru setiap website.
+          </p>
+        </div>
+
+        <Link
+          to="/security"
+          className="inline-flex items-center gap-2 border-b border-[#B69A69] pb-1 text-[9px] font-bold tracking-wider text-[#963746] transition hover:text-[#762B37]"
+        >
+          OPEN SECURITY MONITORING
+          <span aria-hidden="true">↗</span>
+        </Link>
+      </div>
+
+      {/* Total assessments */}
+      <article className="flex flex-col justify-between gap-4 rounded-xl border border-[#D6DEE8] bg-white p-5 shadow-sm sm:flex-row sm:items-center sm:px-6">
+        <div>
+          <p className="text-[9px] font-bold tracking-[0.16em] text-[#963746]">
+            TOTAL SECURITY ASSESSMENTS
+          </p>
+
+          <p className="mt-2 font-serif text-4xl text-[#191A20]">
+            {loading || !hasSummary
+              ? '—'
+              : formatNumber(summary.total_websites)}
+          </p>
+
+          <p className="mt-1 text-[11px] text-[#77736C]">
+            Website dengan hasil pemeriksaan keamanan terbaru
+          </p>
+        </div>
+
+        <div className="flex items-center gap-3 border-t border-[#D6DEE8] pt-4 sm:border-l sm:border-t-0 sm:pl-6 sm:pt-0">
+          <span className="grid size-11 place-items-center border border-[#D6DEE8] bg-[#F8FAFC] text-[#963746]">
+            <span className="text-xl">◈</span>
+          </span>
+
+          <div>
+            <p className="text-[9px] font-bold tracking-wider text-[#963746]">
+              ANALYSIS ENGINE
+            </p>
+            <p className="mt-1 text-xs font-semibold text-[#252B37]">
+              Passive HTML Assessment
+            </p>
+          </div>
+        </div>
+      </article>
+
+      {/* Risk counters */}
+      <div className="grid grid-cols-2 gap-px border border-[#D8CFBF] bg-[#D8CFBF] lg:grid-cols-4">
+        {metrics.map((item) => (
+          <article
+            key={item.index}
+            className="bg-[#F7F4EC] px-4 py-5 transition duration-300 hover:bg-white sm:px-5"
+          >
+            <div className="flex items-center justify-between gap-2">
+              <div className="flex min-w-0 items-center gap-2">
+                <span className={`size-2 shrink-0 rounded-full ${item.dot}`} />
+
+                <p className="truncate text-[9px] font-bold tracking-[0.13em] text-[#817A70]">
+                  {item.label}
+                </p>
+              </div>
+
+              <span className="font-serif text-xs text-[#C8BDAA]">
+                {item.index}
+              </span>
+            </div>
+
+            <p className={`mt-4 font-serif text-3xl ${item.color}`}>
+              {loading || !hasSummary
+                ? '—'
+                : formatNumber(item.value ?? 0)}
+            </p>
+
+            <p className="mt-2 text-[9px] text-[#817A70]">
+              {item.description}
+            </p>
+          </article>
+        ))}
+      </div>
+
+      {!loading && !hasSummary && (
+        <p className="border border-[#B69A69]/40 bg-[#B69A69]/10 p-3 text-[10px] text-[#665F56]">
+          Ringkasan keamanan belum tersedia. Periksa koneksi Security Assessment API.
+        </p>
+      )}
+
+      {/* Assessment information */}
+      <div className="flex flex-col justify-between gap-3 border-l-2 border-[#B69A69] bg-[#F1EBDD] p-4 sm:flex-row sm:items-center">
+        <p className="max-w-2xl text-[10px] leading-5 text-[#77736C]">
+          Hasil pemeriksaan merupakan analisis indikator berbasis heuristik.
+          Status risiko bukan jaminan bahwa website sepenuhnya bebas dari ancaman.
+        </p>
+
+        <Link
+          to="/security"
+          className="shrink-0 text-[9px] font-bold tracking-wider text-[#963746] hover:text-[#762B37]"
+        >
+          VIEW SECURITY REGISTER →
+        </Link>
+      </div>
+    </section>
   )
 }
 
@@ -407,20 +901,52 @@ function DashboardPage() {
     setError('')
 
     try {
-      const [summaryResponse, distributionResponse, recentResponse] =
-        await Promise.all([
-          api.get('/api/dashboard/summary'),
-          api.get('/api/dashboard/technology-distribution'),
-          api.get('/api/dashboard/recent-scans'),
-        ])
+      const [
+        summaryResponse,
+        distributionResponse,
+        recentResponse,
+        healthResponse,
+        securityResponse,
+      ] = await Promise.all([
+        api.get('/api/dashboard/summary'),
+        api.get('/api/dashboard/technology-distribution'),
+        api.get('/api/dashboard/recent-scans'),
+        api.get('/api/dashboard/website-health'),
+
+        // Security API dibuat independen agar kegagalannya
+        // tidak mengganggu seluruh dashboard.
+        api.get('/api/security-assessments', {
+          params: { per_page: 1 },
+        }).catch((securityError) => {
+          console.error('Dashboard security assessment error:', securityError)
+          return null
+        }),
+      ])
 
       const summary = summaryResponse.data?.data || {}
+      const websiteHealth = healthResponse.data?.data || {}
+
+      const securitySummary = securityResponse?.data?.summary || {}
 
       setData({
         statistics: summary.statistics || {},
-        latestScan: summary.latest_completed_scan_at || null,
+
+        latestScan: summary.latest_successful_scan_at || null,
+
         distribution: distributionResponse.data?.data || [],
+
         recentScans: recentResponse.data?.data || [],
+
+        websiteHealth: {
+          summary: websiteHealth.summary || {},
+          websites: Array.isArray(websiteHealth.websites)
+            ? websiteHealth.websites
+            : [],
+        },
+
+        securityAssessment: {
+          summary: securitySummary,
+        },
       })
     } catch (requestError) {
       console.error('Dashboard API error:', requestError)
@@ -629,7 +1155,7 @@ function DashboardPage() {
       </section>
 
       {/* Scan status counters */}
-      <section className="grid grid-cols-2 gap-px border border-[#D8CFBF] bg-[#D8CFBF] md:grid-cols-4">
+      <section className="grid grid-cols-2 gap-px overflow-hidden rounded-lg border border-[#CBD5E1] bg-[#CBD5E1] md:grid-cols-4">
         {scanCounters.map((counter, index) => (
           <div
             key={counter.label}
@@ -655,6 +1181,18 @@ function DashboardPage() {
           </div>
         ))}
       </section>
+
+            {/* Website Health Monitoring */}
+      <WebsiteHealthSection
+        health={data.websiteHealth}
+        loading={loading}
+      />
+
+      {/* Security Overview */}
+<SecurityOverviewSection
+  assessment={data.securityAssessment}
+  loading={loading}
+/>
 
       {/* Activity and technology distribution */}
       <section className="grid gap-5 xl:grid-cols-[1.5fr_0.85fr]">
@@ -699,17 +1237,17 @@ function DashboardPage() {
           )}
         </article>
 
-        <article className="overflow-hidden border border-[#3A3940] bg-[#252B37] text-[#EEE9DD]">
-          <div className="border-b border-[#55515A] p-5">
-            <p className="text-[9px] font-semibold tracking-[0.2em] text-[#B69A69]">
+        <article className="overflow-hidden rounded-xl border border-[#D6DEE8] bg-white text-[#252B37] shadow-sm">
+          <div className="border-b border-[#D6DEE8] bg-[#F8FAFC] p-5 sm:p-6">
+            <p className="text-[9px] font-bold tracking-[0.18em] text-[#963746]">
               TECHNOLOGY ARCHIVE / 02
             </p>
 
-            <h2 className="mt-2 font-serif text-2xl">
+            <h2 className="mt-2 font-serif text-2xl text-[#191A20]">
               Technology Intelligence
             </h2>
 
-            <p className="mt-1 text-[10px] text-[#B8B4AA]">
+            <p className="mt-1 text-xs leading-5 text-[#77736C]">
               Distribusi berdasarkan kategori teknologi
             </p>
           </div>
@@ -760,11 +1298,11 @@ function DashboardPage() {
             </p>
 
             <p className="mt-2 font-medium text-[#252B37]">
-              60 Minutes
+              10 Minutes
             </p>
 
             <p className="mt-1 text-[9px] text-[#817A70]">
-              Dapat diatur per website
+              Default for new websites; configurable individually.
             </p>
           </div>
 

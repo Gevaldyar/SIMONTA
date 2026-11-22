@@ -3,6 +3,7 @@ import { NavLink } from 'react-router'
 
 import BrandLogo from '../common/BrandLogo'
 import InterfaceIcon from '../common/InterfaceIcon'
+import SidebarNavigationIcon from '../common/SidebarNavigationIcon'
 
 const navigationGroups = [
   {
@@ -34,6 +35,11 @@ const navigationGroups = [
         icon: 'scan',
       },
       {
+  label: 'Domain & SSL Monitoring',
+  path: '/domain-ssl',
+  icon: 'globe',
+},
+      {
         label: 'Technology Detection',
         path: '/technologies',
         icon: 'overview',
@@ -42,6 +48,16 @@ const navigationGroups = [
   label: 'Technology Changes',
   path: '/technology-changes',
   icon: 'changes',
+},
+{
+  label: 'Security Monitoring',
+  path: '/security',
+  icon: 'scan',
+},
+{
+  label: 'Security Headers Audit',
+  path: '/security-headers',
+  icon: 'scan',
 },
       {
         label: 'Inspection History',
@@ -198,8 +214,8 @@ function Sidebar({
                       : ''}
                   `}
                 >
-                  <InterfaceIcon
-                    name={item.icon}
+                  <SidebarNavigationIcon
+                    label={item.label}
                     size={19}
                     className="shrink-0 transition-transform duration-200 group-hover:scale-110"
                   />

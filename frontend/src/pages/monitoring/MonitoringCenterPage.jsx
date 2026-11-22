@@ -173,7 +173,7 @@ function FlagBadge({ enabled, onLabel = 'ON', offLabel = 'OFF' }) {
 function StatCard({ label, value, description, icon, color, index }) {
   return (
     <article
-      className="simonta-card-enter relative min-h-[145px] overflow-hidden border border-[#D8CFBF] bg-[#F7F4EC] p-5 transition duration-300 hover:-translate-y-1 hover:border-[#B69A69]"
+      className="simonta-card-enter simonta-monitoring-stat relative min-h-[145px] overflow-hidden border border-[#D8CFBF] bg-[#F7F4EC] p-5 transition duration-300 hover:-translate-y-1 hover:border-[#B69A69]"
       style={{ '--stagger-index': index }}
     >
       <span className="absolute -right-1 -top-7 font-serif text-[78px] leading-none text-[#E8E0D2]">
@@ -417,12 +417,12 @@ function MonitoringCenterPage() {
   ]
 
   return (
-    <div className="simonta-page-enter space-y-8">
+    <div className="simonta-page-enter simonta-monitoring-page space-y-8">
 
       {/* Page heading */}
-      <section className="relative overflow-hidden border-b border-[#CFC4B2] pb-7">
+      <section className="simonta-monitoring-hero relative overflow-hidden border-b border-[#CFC4B2] pb-7">
         <div className="pointer-events-none absolute -right-2 -top-12 select-none font-serif text-[150px] leading-none text-[#E7DFD1]">
-          04
+          01
         </div>
 
         <div className="relative">
@@ -505,8 +505,8 @@ function MonitoringCenterPage() {
       )}
 
       {/* Scan summary */}
-      <section>
-        <div className="mb-4">
+      <section className="simonta-monitoring-summary">
+        <div className="simonta-monitoring-section-heading mb-4">
           <p className="text-[10px] font-semibold tracking-[0.18em] text-[#963746]">
             MONITORING PERFORMANCE
           </p>
@@ -528,8 +528,8 @@ function MonitoringCenterPage() {
       </section>
 
       {/* Website inspection control */}
-      <section className="border border-[#D8CFBF] bg-[#F7F4EC]">
-        <div className="border-b border-[#D8CFBF] p-5">
+      <section className="simonta-monitoring-panel simonta-monitoring-inspection-panel border border-[#D8CFBF] bg-[#F7F4EC]">
+        <div className="simonta-monitoring-panel-header border-b border-[#D8CFBF] p-5">
           <p className="text-[9px] font-semibold tracking-[0.2em] text-[#963746]">
             INSPECTION CONTROL / 01
           </p>
@@ -598,8 +598,8 @@ function MonitoringCenterPage() {
           </div>
         </div>
 
-        <div className="hidden overflow-x-auto md:block">
-          <table className="w-full min-w-[900px] border-collapse text-left">
+        <div className="simonta-monitoring-table-wrap hidden overflow-x-auto md:block">
+          <table className="simonta-monitoring-table w-full min-w-[900px] border-collapse text-left">
             <thead>
               <tr className="border-b border-[#D8CFBF] bg-[#F1EBDD]">
                 <th className="px-5 py-4 text-[9px] font-bold tracking-wider text-[#817A70]">
@@ -692,7 +692,7 @@ function MonitoringCenterPage() {
 
                       <td className="px-5 py-5">
                         <p className="font-serif text-lg text-[#252B37]">
-                          {website.monitoring_interval_minutes / 60}h
+                          {website.monitoring_interval_minutes} {Number(website.monitoring_interval_minutes) === 1 ? 'minute' : 'minutes'}
                         </p>
                       </td>
 
@@ -725,7 +725,7 @@ function MonitoringCenterPage() {
         </div>
 
         {/* Mobile cards */}
-        <div className="divide-y divide-[#D8CFBF] md:hidden">
+        <div className="simonta-monitoring-mobile-list divide-y divide-[#D8CFBF] md:hidden">
           {loading ? (
             [1, 2, 3].map((item) => (
               <div key={item} className="p-5">
@@ -772,7 +772,7 @@ function MonitoringCenterPage() {
                     </div>
 
                     <p className="text-[10px] text-[#817A70]">
-                      {website.monitoring_interval_minutes / 60}h interval
+                      {website.monitoring_interval_minutes} {Number(website.monitoring_interval_minutes) === 1 ? 'minute' : 'minutes'} interval
                     </p>
                   </div>
 
@@ -834,8 +834,8 @@ function MonitoringCenterPage() {
       </section>
 
       {/* Recent scan history */}
-      <section className="border border-[#D8CFBF] bg-[#F7F4EC]">
-        <div className="flex flex-col justify-between gap-3 border-b border-[#D8CFBF] p-5 sm:flex-row sm:items-center">
+      <section className="simonta-monitoring-panel simonta-monitoring-history-panel border border-[#D8CFBF] bg-[#F7F4EC]">
+        <div className="simonta-monitoring-panel-header flex flex-col justify-between gap-3 border-b border-[#D8CFBF] p-5 sm:flex-row sm:items-center">
           <div>
             <p className="text-[9px] font-semibold tracking-[0.2em] text-[#963746]">
               INSPECTION LOG / 02
@@ -897,7 +897,7 @@ function MonitoringCenterPage() {
             {scans.map((scan, index) => (
               <div
                 key={scan.id}
-                className="group flex flex-col justify-between gap-4 px-5 py-4 transition duration-200 hover:bg-[#F1EBDD] sm:flex-row sm:items-center"
+                className="simonta-monitoring-scan-row group flex flex-col justify-between gap-4 px-5 py-4 transition duration-200 hover:bg-[#F1EBDD] sm:flex-row sm:items-center"
                 style={{ animationDelay: `${index * 40}ms` }}
               >
                 <div className="min-w-0">
@@ -927,7 +927,7 @@ function MonitoringCenterPage() {
                     )}
                   </div>
 
-                  <div className="flex items-center gap-3">
+                  <div className="simonta-monitoring-scan-actions flex items-center gap-3">
                     <span className="text-[9px] text-[#665F56]">
                       {scan.http_status_code
                         ? `HTTP ${scan.http_status_code}`
@@ -959,7 +959,7 @@ function MonitoringCenterPage() {
       </section>
 
       {/* Auto refresh note */}
-      <div className="flex flex-wrap items-center justify-between gap-3 border-t border-[#D8CFBF] pt-4">
+      <div className="simonta-monitoring-refresh-note flex flex-wrap items-center justify-between gap-3 border-t border-[#D8CFBF] pt-4">
         <div className="flex items-center gap-2">
           <span className="size-2 rounded-full bg-[#82918B]" />
           <p className="text-[9px] tracking-wider text-[#50665C]">
@@ -986,9 +986,9 @@ function MonitoringCenterPage() {
             role="dialog"
             aria-modal="true"
             aria-labelledby="scan-detail-title"
-            className="simonta-card-enter my-auto w-full max-w-2xl border border-[#B69A69]/50 bg-[#EEE9DD] shadow-[0_25px_80px_rgba(0,0,0,0.25)]"
+            className="simonta-card-enter simonta-monitoring-detail-modal my-auto w-full max-w-3xl border border-[#B69A69]/50 bg-[#EEE9DD] shadow-[0_25px_80px_rgba(0,0,0,0.25)]"
           >
-            <div className="flex items-start justify-between border-b border-[#D8CFBF] p-5 sm:p-7">
+            <div className="simonta-monitoring-detail-header flex items-start justify-between border-b border-[#D8CFBF] p-5 sm:p-7">
               <div>
                 <p className="text-[9px] font-bold tracking-[0.2em] text-[#963746]">
                   INSPECTION RECORD
@@ -1033,7 +1033,7 @@ function MonitoringCenterPage() {
                   <StatusBadge status={selectedScan.status} />
                 </div>
 
-                <div className="border-y border-[#D8CFBF] py-4">
+                <div className="simonta-monitoring-detail-website border-y border-[#D8CFBF] py-4">
                   <p className="text-[9px] font-bold tracking-wider text-[#963746]">
                     WEBSITE
                   </p>
@@ -1051,7 +1051,7 @@ function MonitoringCenterPage() {
                   </p>
                 </div>
 
-                <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+                <div className="simonta-monitoring-detail-metrics grid grid-cols-2 gap-3 sm:grid-cols-4">
                   {[
                     {
                       label: 'HTTP STATUS',
@@ -1074,7 +1074,7 @@ function MonitoringCenterPage() {
                   ].map((item) => (
                     <div
                       key={item.label}
-                      className="border border-[#D8CFBF] bg-[#F7F4EC] p-3"
+                      className="simonta-monitoring-detail-metric border border-[#D8CFBF] bg-[#F7F4EC] p-3"
                     >
                       <p className="text-[8px] font-bold tracking-wider text-[#817A70]">
                         {item.label}
@@ -1087,7 +1087,7 @@ function MonitoringCenterPage() {
                   ))}
                 </div>
 
-                <div className="grid gap-3 sm:grid-cols-2">
+                <div className="simonta-monitoring-detail-timestamps grid gap-3 sm:grid-cols-2">
                   <div>
                     <p className="text-[9px] font-bold tracking-wider text-[#817A70]">
                       STARTED AT
@@ -1121,7 +1121,7 @@ function MonitoringCenterPage() {
                   </div>
                 )}
 
-                <div className="border-t border-[#D8CFBF] pt-5">
+                <div className="simonta-monitoring-detail-technologies border-t border-[#D8CFBF] pt-5">
                   <div className="flex items-center justify-between gap-3">
                     <h3 className="font-serif text-xl text-[#191A20]">
                       Detected Technologies
@@ -1141,7 +1141,7 @@ function MonitoringCenterPage() {
                       {selectedScan.scan_technologies.map((item) => (
                         <div
                           key={item.id}
-                          className="flex flex-col justify-between gap-2 border border-[#D8CFBF] bg-[#F7F4EC] p-4 sm:flex-row sm:items-center"
+                          className="simonta-monitoring-technology-row flex flex-col justify-between gap-2 border border-[#D8CFBF] bg-[#F7F4EC] p-4 sm:flex-row sm:items-center"
                         >
                           <div>
                             <p className="text-sm font-semibold text-[#252B37]">
@@ -1199,7 +1199,7 @@ function MonitoringCenterPage() {
                 )}
 
                 {selectedScan.metadata?.headers && (
-                  <details className="border border-[#D8CFBF]">
+                  <details className="simonta-monitoring-response-details border border-[#D8CFBF]">
                     <summary className="cursor-pointer px-4 py-3 text-[9px] font-bold tracking-wider text-[#665F56] transition hover:bg-[#F7F4EC]">
                       VIEW RESPONSE METADATA
                     </summary>

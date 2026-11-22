@@ -1,0 +1,32 @@
+/* Keep the unread counter fully visible inside the notification control.
+   The previous negative top/right offsets could be clipped at the viewport edge. */
+.simonta-topbar button[aria-label^="Notifikasi"] {
+  position: relative;
+  overflow: visible !important;
+  isolation: isolate;
+  z-index: 2;
+}
+
+.simonta-topbar button[aria-label^="Notifikasi"] > span {
+  top: 1px !important;
+  right: 1px !important;
+  transform: none !important;
+  z-index: 4;
+  display: grid;
+  min-width: 18px;
+  min-height: 18px;
+  place-items: center;
+  padding: 0 4px;
+  border: 2px solid #ffffff !important;
+  border-radius: 999px;
+  background: #963746 !important;
+  color: #ffffff !important;
+  font-size: 9px;
+  font-weight: 800;
+  line-height: 1;
+  pointer-events: none;
+}
+
+[data-theme="dark"] .simonta-topbar button[aria-label^="Notifikasi"] > span {
+  border-color: #1b2a40 !important;
+}

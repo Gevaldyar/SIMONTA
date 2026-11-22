@@ -1,0 +1,235 @@
+/* SIMONTA — Dark Mode layer
+   Import this file AFTER simonta-redesign.css.
+   The theme is scoped to the authenticated dashboard wrapper [data-theme="dark"].
+*/
+
+[data-theme="dark"] {
+  color-scheme: dark;
+  --simonta-bg: #0f1724;
+  --simonta-surface: #172235;
+  --simonta-surface-muted: #1c2a40;
+  --simonta-surface-soft: #223149;
+  --simonta-border: #34445c;
+  --simonta-border-strong: #495c77;
+  --simonta-text: #e7edf5;
+  --simonta-text-soft: #bdc9d9;
+  --simonta-text-muted: #91a1b8;
+  --simonta-navy: #101a2a;
+  --simonta-navy-soft: #1a2940;
+  --simonta-shadow-card: 0 1px 2px rgb(0 0 0 / 18%), 0 10px 28px rgb(0 0 0 / 18%);
+  background: var(--simonta-bg) !important;
+  color: var(--simonta-text) !important;
+}
+
+/* Main application canvas and the page column. */
+[data-theme="dark"].min-h-screen,
+[data-theme="dark"] .min-h-screen {
+  background-color: var(--simonta-bg) !important;
+  color: var(--simonta-text) !important;
+}
+
+[data-theme="dark"] main {
+  color: var(--simonta-text) !important;
+}
+
+/* Top toolbar and footer. */
+[data-theme="dark"] header.sticky {
+  background: rgb(20 30 46 / 96%) !important;
+  border-bottom-color: var(--simonta-border) !important;
+  color: var(--simonta-text) !important;
+}
+
+[data-theme="dark"] header [class*="text-[#191A20]"],
+[data-theme="dark"] header [class*="text-[#252B37]"] {
+  color: var(--simonta-text) !important;
+}
+
+[data-theme="dark"] header [class*="text-[#77736C]"],
+[data-theme="dark"] header [class*="text-[#817A70]"],
+[data-theme="dark"] header [class*="text-[#665F56]"] {
+  color: var(--simonta-text-soft) !important;
+}
+
+[data-theme="dark"] footer {
+  border-color: var(--simonta-border) !important;
+  color: var(--simonta-text-soft) !important;
+}
+
+/* Primary cards and standard light page surfaces. */
+[data-theme="dark"] main [class*="bg-[#F7F4EC]"],
+[data-theme="dark"] main [class*="bg-[#FAF8F2]"],
+[data-theme="dark"] main [class*="bg-[#EEE9DD]"],
+[data-theme="dark"] main [class*="bg-white"],
+[data-theme="dark"] header [class*="bg-[#F7F4EC]"],
+[data-theme="dark"] header [class*="bg-[#FAF8F2]"],
+[data-theme="dark"] header [class*="bg-white"] {
+  background-color: var(--simonta-surface) !important;
+  color: var(--simonta-text) !important;
+}
+
+[data-theme="dark"] main [class*="bg-[#F1EBDD]"],
+[data-theme="dark"] main [class*="bg-[#E8E0D2]"],
+[data-theme="dark"] main [class*="bg-slate-50"],
+[data-theme="dark"] main [class*="bg-gray-50"],
+[data-theme="dark"] main [class*="bg-[#D8CFBF]/20"] {
+  background-color: var(--simonta-surface-muted) !important;
+}
+
+/* Convert light borders into clearly visible dark dividers. */
+[data-theme="dark"] main [class*="border-[#D8CFBF]"],
+[data-theme="dark"] main [class*="border-[#CFC4B2]"],
+[data-theme="dark"] main [class*="border-[#D0C4B2]"],
+[data-theme="dark"] main [class*="border-slate-200"],
+[data-theme="dark"] main [class*="border-gray-200"],
+[data-theme="dark"] header [class*="border-[#D8CFBF]"],
+[data-theme="dark"] header [class*="border-slate-200"] {
+  border-color: var(--simonta-border) !important;
+}
+
+[data-theme="dark"] main [class*="border-[#D8CFBF]/"],
+[data-theme="dark"] main [class*="border-[#CFC4B2]/"] {
+  border-color: var(--simonta-border) !important;
+}
+
+/* Main copy and headings. Semantic status/accent colors are intentionally preserved. */
+[data-theme="dark"] main [class*="text-[#191A20]"],
+[data-theme="dark"] main [class*="text-[#252B37]"],
+[data-theme="dark"] main [class*="text-slate-900"],
+[data-theme="dark"] main [class*="text-gray-900"] {
+  color: var(--simonta-text) !important;
+}
+
+[data-theme="dark"] main [class*="text-[#77736C]"],
+[data-theme="dark"] main [class*="text-[#817A70]"],
+[data-theme="dark"] main [class*="text-[#665F56]"],
+[data-theme="dark"] main [class*="text-[#948B7D]"],
+[data-theme="dark"] main [class*="text-[#8B8479]"],
+[data-theme="dark"] main [class*="text-[#A0988B]"],
+[data-theme="dark"] main [class*="text-slate-500"],
+[data-theme="dark"] main [class*="text-slate-600"],
+[data-theme="dark"] main [class*="text-gray-500"],
+[data-theme="dark"] main [class*="text-gray-600"] {
+  color: var(--simonta-text-soft) !important;
+}
+
+/* Keep dark archive panels distinct, without turning them into light cards. */
+[data-theme="dark"] main [class*="bg-[#252B37]"],
+[data-theme="dark"] main [class*="bg-[#191A20]"] {
+  background-color: #0b1220 !important;
+  border-color: var(--simonta-border) !important;
+  color: var(--simonta-text) !important;
+}
+
+/* Tables: strong column separators, row separators and dark header background. */
+[data-theme="dark"] main table {
+  background: var(--simonta-surface) !important;
+  border-color: var(--simonta-border-strong) !important;
+  color: var(--simonta-text) !important;
+}
+
+[data-theme="dark"] main table thead th {
+  background: #223149 !important;
+  border-right-color: var(--simonta-border-strong) !important;
+  border-bottom-color: var(--simonta-border-strong) !important;
+  color: #e0e8f2 !important;
+}
+
+[data-theme="dark"] main table tbody td {
+  background: #172235 !important;
+  border-right-color: var(--simonta-border) !important;
+  border-bottom-color: var(--simonta-border) !important;
+  color: var(--simonta-text-soft) !important;
+}
+
+[data-theme="dark"] main table tbody tr:nth-child(even) td {
+  background: #1b2940 !important;
+}
+
+[data-theme="dark"] main table tbody tr:hover td {
+  background: #263751 !important;
+}
+
+/* Form controls, including dropdown options. */
+[data-theme="dark"] main input:not([type="checkbox"]):not([type="radio"]),
+[data-theme="dark"] main select,
+[data-theme="dark"] main textarea {
+  background-color: #111c2d !important;
+  border-color: var(--simonta-border-strong) !important;
+  color: var(--simonta-text) !important;
+}
+
+[data-theme="dark"] main select option {
+  background: #172235;
+  color: var(--simonta-text);
+}
+
+[data-theme="dark"] main input::placeholder,
+[data-theme="dark"] main textarea::placeholder {
+  color: #91a1b8 !important;
+}
+
+/* Common modal, dropdown and notification surfaces rendered outside main. */
+[data-theme="dark"] [role="dialog"],
+[data-theme="dark"] [role="menu"],
+[data-theme="dark"] [data-radix-popper-content-wrapper] > div {
+  color: var(--simonta-text);
+}
+
+[data-theme="dark"] [role="dialog"] [class*="bg-white"],
+[data-theme="dark"] [role="menu"] [class*="bg-white"],
+[data-theme="dark"] header [class*="bg-white"] {
+  background-color: var(--simonta-surface) !important;
+}
+
+/* Status badges retain their semantic color while improving their dark-mode contrast. */
+[data-theme="dark"] main [class*="bg-[#82918B]/"],
+[data-theme="dark"] main [class*="bg-[#B69A69]/"] {
+  filter: brightness(1.12);
+}
+
+[data-theme="dark"] main [class*="bg-[#963746]/"] {
+  background-color: rgb(150 55 70 / 22%) !important;
+}
+
+/* Theme toggle button in the topbar. */
+.simonta-theme-toggle {
+  border-color: var(--simonta-border-strong);
+  background: #ffffff;
+  color: #40516a;
+}
+
+.simonta-theme-toggle:hover {
+  border-color: var(--simonta-gold);
+  background: #f1f5f9;
+  color: var(--simonta-accent);
+}
+
+[data-theme="dark"] .simonta-theme-toggle {
+  border-color: var(--simonta-border-strong);
+  background: #223149;
+  color: #e4d2a7;
+}
+
+[data-theme="dark"] .simonta-theme-toggle:hover {
+  background: #2b3d58;
+  color: #ffffff;
+}
+
+/* Smooth but restrained theme transition. */
+[data-theme="dark"] main,
+[data-theme="dark"] header,
+[data-theme="dark"] footer,
+[data-theme="dark"] main article,
+[data-theme="dark"] main section {
+  transition: background-color 180ms ease, color 180ms ease, border-color 180ms ease;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  [data-theme="dark"] main,
+  [data-theme="dark"] header,
+  [data-theme="dark"] footer,
+  [data-theme="dark"] main article,
+  [data-theme="dark"] main section {
+    transition: none !important;
+  }
+}

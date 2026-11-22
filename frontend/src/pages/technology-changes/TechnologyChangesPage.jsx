@@ -102,7 +102,7 @@ function ChangeBadge({ type }) {
 
 function MetricCard({ index, label, value, description, icon, loading }) {
   return (
-    <article className="relative min-h-[145px] overflow-hidden border border-[#D8CFBF] bg-[#F7F4EC] p-5 transition duration-300 hover:-translate-y-1 hover:border-[#B69A69]">
+    <article className="simonta-tech-metric relative min-h-[145px] overflow-hidden border border-[#D8CFBF] bg-[#F7F4EC] p-5 transition duration-300 hover:-translate-y-1 hover:border-[#B69A69]">
       <span className="absolute -right-1 -top-7 font-serif text-[78px] leading-none text-[#E8E0D2]">{index}</span>
       <div className="relative flex items-center justify-between">
         <p className="text-[9px] font-bold tracking-[0.15em] text-[#77736C]">{label}</p>
@@ -140,6 +140,17 @@ function TechnologyChangesPage() {
   const [websites, setWebsites] = useState([])
 
   const [filters, setFilters] = useState({ opd_id: '', website_id: '', change_type: '', date_from: '', date_to: '' })
+
+  // Hanya kirim parameter filter yang benar-benar diisi pengguna.
+  // Jangan kirim string kosong karena endpoint summary memvalidasinya sebagai input.
+  const activeFilterParams = useMemo(() => {
+    return Object.fromEntries(
+      Object.entries(filters).filter(([, value]) =>
+        value !== '' && value !== null && value !== undefined
+      )
+    )
+  }, [filters])
+
   const [currentPage, setCurrentPage] = useState(1)
   const [lastPage, setLastPage] = useState(1)
   const [total, setTotal] = useState(0)
@@ -153,25 +164,13 @@ function TechnologyChangesPage() {
   const [selectedChange, setSelectedChange] = useState(null)
   const [detailLoading, setDetailLoading] = useState(false)
 
-  // Hanya kirim filter yang benar-benar diisi pengguna.
-const activeFilterParams = useMemo(() => {
-  const params = {}
-
-  Object.entries(filters).forEach(([key, value]) => {
-    if (value !== '' && value !== null && value !== undefined) {
-      params[key] = value
-    }
-  })
-
-  return params
-}, [filters])
-
-// Parameter untuk daftar perubahan dilengkapi pagination.
-const queryParams = useMemo(() => ({
-  ...activeFilterParams,
-  per_page: 15,
-  page: currentPage,
-}), [activeFilterParams, currentPage])
+  const queryParams = useMemo(() => {
+    const params = { per_page: 15, page: currentPage }
+    Object.entries(filters).forEach(([key, value]) => {
+      if (value !== '') params[key] = value
+    })
+    return params
+  }, [filters, currentPage])
 
   const loadOptions = useCallback(async () => {
     setOptionsError('')
@@ -194,14 +193,9 @@ const queryParams = useMemo(() => ({
     setError('')
 
     const [listResult, summaryResult] = await Promise.allSettled([
-  api.get('/api/technology-changes', {
-    params: queryParams,
-  }),
-
-  api.get('/api/technology-changes/summary', {
-    params: activeFilterParams,
-  }),
-])
+      api.get('/api/technology-changes', { params: queryParams }),
+      api.get('/api/technology-changes/summary', { params: activeFilterParams }),
+    ])
 
     if (listResult.status === 'fulfilled') {
       const result = getPaginator(listResult.value.data)
@@ -292,7 +286,7 @@ const queryParams = useMemo(() => ({
   ]
 
   return (
-    <div className="simonta-page-enter space-y-8">
+    <div className="simonta-page-enter simonta-technology-page simonta-technology-changes space-y-8">
       <section className="relative overflow-hidden border-b border-[#CFC4B2] pb-7">
         <div className="pointer-events-none absolute -right-2 -top-12 select-none font-serif text-[150px] leading-none text-[#E7DFD1]">06</div>
         <div className="relative">
@@ -325,7 +319,7 @@ const queryParams = useMemo(() => ({
         {metrics.map((metric) => <MetricCard key={metric.index} {...metric} loading={loading} />)}
       </section>
 
-      <section className="grid gap-3 sm:grid-cols-2">
+      <section className="simonta-tech-mini-metrics grid gap-3 sm:grid-cols-2">
         <article className="flex items-center justify-between gap-4 border border-[#D8CFBF] bg-[#F7F4EC] p-5">
           <div><p className="text-[9px] font-bold tracking-[0.15em] text-[#77736C]">AFFECTED WEBSITES</p><p className="mt-2 text-[10px] text-[#817A70]">Website dengan catatan perubahan</p></div>
           <p className="font-serif text-3xl text-[#963746]">{loading ? '—' : formatNumber(summary.affected_websites)}</p>
@@ -336,7 +330,7 @@ const queryParams = useMemo(() => ({
         </article>
       </section>
 
-      <section className="border border-[#D8CFBF] bg-[#F7F4EC]">
+      <section className="simonta-tech-panel simonta-tech-panel--changes border border-[#D8CFBF] bg-[#F7F4EC]">
         <div className="border-b border-[#D8CFBF] p-5">
           <p className="text-[9px] font-semibold tracking-[0.2em] text-[#963746]">CHANGE DATABASE / FILTERS</p>
           <div className="mt-2 flex flex-col justify-between gap-2 sm:flex-row sm:items-end">
@@ -377,7 +371,7 @@ const queryParams = useMemo(() => ({
         </div>
 
         <div className="hidden overflow-x-auto md:block">
-          <table className="w-full min-w-[1000px] border-collapse text-left">
+          <table className="simonta-tech-table simonta-tech-table--changes w-full min-w-[1000px] border-collapse text-left">
             <thead><tr className="border-b border-[#D8CFBF] bg-[#F1EBDD]">
               <th className="px-5 py-4 text-[9px] font-bold tracking-wider text-[#817A70]">TECHNOLOGY</th>
               <th className="px-5 py-4 text-[9px] font-bold tracking-wider text-[#817A70]">CHANGE</th>
@@ -406,10 +400,10 @@ const queryParams = useMemo(() => ({
           </table>
         </div>
 
-        <div className="divide-y divide-[#D8CFBF] md:hidden">
+        <div className="simonta-tech-mobile-list divide-y divide-[#D8CFBF] md:hidden">
           {loading ? [1, 2, 3].map((item) => <div key={item} className="p-5"><div className="simonta-skeleton h-4 w-2/3" /><div className="simonta-skeleton mt-3 h-3 w-1/2" /></div>) : changes.length === 0 ? <div className="p-8 text-center text-xs text-[#817A70]">Belum ada perubahan teknologi yang ditemukan.</div> : changes.map((change) => {
             const website = change.scan?.website
-            return <article key={change.id} className="space-y-3 p-5">
+            return <article key={change.id} className="simonta-tech-mobile-card space-y-3 p-5">
               <div className="flex flex-wrap items-start justify-between gap-2"><div><h3 className="text-sm font-semibold text-[#252B37]">{change.technology_name || change.technology?.name || 'Unknown technology'}</h3><p className="mt-1 text-[10px] text-[#817A70]">{website?.opd?.name || '—'} / {website?.name || website?.url || 'Website tidak tersedia'}</p></div><ChangeBadge type={change.change_type} /></div>
               <div className="grid grid-cols-2 gap-3 border-y border-[#D8CFBF] py-3"><div><p className="text-[8px] tracking-wider text-[#817A70]">PREVIOUS VERSION</p><p className="mt-1 text-xs text-[#252B37]">{change.previous_version || '—'}</p></div><div><p className="text-[8px] tracking-wider text-[#817A70]">CURRENT VERSION</p><p className="mt-1 text-xs font-semibold text-[#252B37]">{change.current_version || '—'}</p></div></div>
               <p className="text-[10px] text-[#817A70]">{formatDate(change.created_at)}</p>
@@ -422,12 +416,12 @@ const queryParams = useMemo(() => ({
       </section>
 
       {detailOpen && <div className="simonta-backdrop-enter fixed inset-0 z-[100] flex items-center justify-center overflow-y-auto bg-[#191A20]/65 p-4 backdrop-blur-[2px]" onMouseDown={(event) => { if (event.target === event.currentTarget) closeDetail() }}>
-        <section role="dialog" aria-modal="true" aria-labelledby="technology-change-detail-title" className="simonta-card-enter my-auto max-h-[90vh] w-full max-w-3xl overflow-y-auto border border-[#B69A69]/50 bg-[#EEE9DD] shadow-[0_25px_80px_rgba(0,0,0,0.25)]">
+        <section role="dialog" aria-modal="true" aria-labelledby="technology-change-detail-title" className="simonta-card-enter simonta-tech-dialog my-auto max-h-[90vh] w-full max-w-3xl overflow-y-auto border border-[#B69A69]/50 bg-[#EEE9DD] shadow-[0_25px_80px_rgba(0,0,0,0.25)]">
           <div className="flex items-start justify-between border-b border-[#D8CFBF] p-5 sm:p-7"><div><p className="text-[9px] font-bold tracking-[0.2em] text-[#963746]">CHANGE INTELLIGENCE / RECORD DETAIL</p><h2 id="technology-change-detail-title" className="mt-2 font-serif text-3xl text-[#191A20]">Technology Change.</h2><p className="mt-2 text-[10px] text-[#817A70]">Snapshot perubahan dari dua hasil pemindaian.</p></div><button type="button" onClick={closeDetail} aria-label="Close change detail" className="simonta-icon-action grid size-9 shrink-0 place-items-center border border-[#D8CFBF] text-[#665F56] transition hover:border-[#963746] hover:text-[#963746]"><Icon name="close" /></button></div>
           {detailLoading || !selectedChange ? <div className="space-y-4 p-7"><div className="simonta-skeleton h-6 w-1/2" /><div className="simonta-skeleton h-4 w-full" /><div className="simonta-skeleton h-4 w-2/3" /></div> : <div className="space-y-6 p-5 sm:p-7">
             <div className="flex flex-col justify-between gap-3 sm:flex-row sm:items-start"><div><h3 className="font-serif text-3xl text-[#191A20]">{selectedChange.technology_name || selectedChange.technology?.name || 'Unknown technology'}</h3><p className="mt-1 text-xs text-[#817A70]">{selectedChange.technology_slug || selectedChange.technology?.slug || '—'}</p><div className="mt-3"><ChangeBadge type={selectedChange.change_type} /></div></div><div className="border border-[#D8CFBF] bg-[#F7F4EC] p-4 sm:min-w-[170px]"><p className="text-[8px] font-bold tracking-wider text-[#817A70]">RECORDED AT</p><p className="mt-2 text-xs text-[#252B37]">{formatDate(selectedChange.created_at)}</p></div></div>
-            <div className="grid gap-4 border-y border-[#D8CFBF] py-4 sm:grid-cols-2"><div><p className="text-[9px] font-bold tracking-wider text-[#817A70]">OPD</p><p className="mt-2 text-sm text-[#252B37]">{selectedChange.scan?.website?.opd?.name || '—'}</p></div><div><p className="text-[9px] font-bold tracking-wider text-[#817A70]">WEBSITE</p><p className="mt-2 break-all text-sm text-[#252B37]">{selectedChange.scan?.website?.name || selectedChange.scan?.website?.url || '—'}</p><p className="mt-1 break-all text-[10px] text-[#817A70]">{selectedChange.scan?.website?.url || ''}</p></div><div><p className="text-[9px] font-bold tracking-wider text-[#817A70]">PREVIOUS SCAN ID</p><p className="mt-2 text-sm text-[#252B37]">{selectedChange.previous_scan_id || selectedChange.previous_scan?.id || '—'}</p></div><div><p className="text-[9px] font-bold tracking-wider text-[#817A70]">CURRENT SCAN ID</p><p className="mt-2 text-sm text-[#252B37]">{selectedChange.scan_id || selectedChange.scan?.id || '—'}</p></div></div>
-            <div><h3 className="font-serif text-xl text-[#191A20]">Version Comparison</h3><div className="mt-3 grid gap-3 sm:grid-cols-2"><div className="border border-[#D8CFBF] bg-[#F7F4EC] p-4"><p className="text-[9px] font-bold tracking-wider text-[#817A70]">PREVIOUS VERSION</p><p className="mt-3 font-serif text-2xl text-[#665F56]">{selectedChange.previous_version || 'Not detected'}</p><p className="mt-3 text-[9px] text-[#817A70]">Confidence: {selectedChange.previous_confidence ?? '—'}{selectedChange.previous_confidence != null ? '%' : ''}</p></div><div className="border border-[#B69A69]/60 bg-[#F7F4EC] p-4"><p className="text-[9px] font-bold tracking-wider text-[#817A70]">CURRENT VERSION</p><p className="mt-3 font-serif text-2xl text-[#963746]">{selectedChange.current_version || 'Not detected'}</p><p className="mt-3 text-[9px] text-[#817A70]">Confidence: {selectedChange.current_confidence ?? '—'}{selectedChange.current_confidence != null ? '%' : ''}</p></div></div></div>
+            <div className="simonta-tech-detail-grid grid gap-4 border-y border-[#D8CFBF] py-4 sm:grid-cols-2"><div><p className="text-[9px] font-bold tracking-wider text-[#817A70]">OPD</p><p className="mt-2 text-sm text-[#252B37]">{selectedChange.scan?.website?.opd?.name || '—'}</p></div><div><p className="text-[9px] font-bold tracking-wider text-[#817A70]">WEBSITE</p><p className="mt-2 break-all text-sm text-[#252B37]">{selectedChange.scan?.website?.name || selectedChange.scan?.website?.url || '—'}</p><p className="mt-1 break-all text-[10px] text-[#817A70]">{selectedChange.scan?.website?.url || ''}</p></div><div><p className="text-[9px] font-bold tracking-wider text-[#817A70]">PREVIOUS SCAN ID</p><p className="mt-2 text-sm text-[#252B37]">{selectedChange.previous_scan_id || selectedChange.previous_scan?.id || '—'}</p></div><div><p className="text-[9px] font-bold tracking-wider text-[#817A70]">CURRENT SCAN ID</p><p className="mt-2 text-sm text-[#252B37]">{selectedChange.scan_id || selectedChange.scan?.id || '—'}</p></div></div>
+            <div><h3 className="font-serif text-xl text-[#191A20]">Version Comparison</h3><div className="simonta-tech-version-grid mt-3 grid gap-3 sm:grid-cols-2"><div className="border border-[#D8CFBF] bg-[#F7F4EC] p-4"><p className="text-[9px] font-bold tracking-wider text-[#817A70]">PREVIOUS VERSION</p><p className="mt-3 font-serif text-2xl text-[#665F56]">{selectedChange.previous_version || 'Not detected'}</p><p className="mt-3 text-[9px] text-[#817A70]">Confidence: {selectedChange.previous_confidence ?? '—'}{selectedChange.previous_confidence != null ? '%' : ''}</p></div><div className="border border-[#B69A69]/60 bg-[#F7F4EC] p-4"><p className="text-[9px] font-bold tracking-wider text-[#817A70]">CURRENT VERSION</p><p className="mt-3 font-serif text-2xl text-[#963746]">{selectedChange.current_version || 'Not detected'}</p><p className="mt-3 text-[9px] text-[#817A70]">Confidence: {selectedChange.current_confidence ?? '—'}{selectedChange.current_confidence != null ? '%' : ''}</p></div></div></div>
             <div className="grid gap-5 sm:grid-cols-2"><EvidencePanel title="PREVIOUS DETECTION EVIDENCE" value={selectedChange.previous_evidence} /><EvidencePanel title="CURRENT DETECTION EVIDENCE" value={selectedChange.current_evidence} /></div>
           </div>}
           <div className="flex justify-end border-t border-[#D8CFBF] p-5 sm:px-7"><button type="button" onClick={closeDetail} className="simonta-angular-action border border-[#B69A69] px-5 py-3 text-[10px] font-bold tracking-wider text-[#665F56] transition hover:bg-[#B69A69]/10">CLOSE DETAIL</button></div>

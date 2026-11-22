@@ -163,25 +163,31 @@ class HttpInspector
         $html = $isHtml ? $response['body'] : '';
 
         $parsedHtml = $isHtml
-            ? $this->parseHtml($html)
-            : [
-                'page_title' => null,
-                'meta' => [],
-                'scripts' => [],
-            ];
+    ? $this->parseHtml($html, $contentType)
+    : [
+        'page_title' => null,
+        'meta' => [],
+        'scripts' => [],
+    ];
 
         $elapsedMs = (int) (
             (hrtime(true) - $startedAt) / 1000000
         );
 
         return [
-            // Data untuk TechnologyDetectionService.
-            'url' => $originalUrl,
-            'final_url' => $currentUrl,
+    'url' => $originalUrl,
+    'final_url' => $currentUrl,
 
-            'headers' => $this->filterHeaders($headers),
-            'html' => $html,
-            'cookies' => $this->extractCookieNames($headers),
+    'headers' => $this->filterHeaders($headers),
+
+    // Header keamanan dipisahkan dari fingerprint teknologi.
+    'security_headers' => $this->extractSecurityHeaders($headers),
+
+    // Informasi sertifikat TLS.
+    'tls_certificate' => $response['tls_certificate'] ?? null,
+
+    'html' => $html,
+    'cookies' => $this->extractCookieNames($headers),
 
             'meta' => $parsedHtml['meta'],
             'scripts' => $parsedHtml['scripts'],
@@ -219,9 +225,10 @@ class HttpInspector
         $ip = $validated['addresses'][0];
 
         $responseHeaders = [];
-        $responseBody = '';
+$responseBody = '';
+$certificateInfo = [];
 
-        $statusCode = 0;
+$statusCode = 0;
 
         $bodyTooLarge = false;
         $headersTooLarge = false;
@@ -264,6 +271,9 @@ class HttpInspector
             // Sertifikat TLS dan hostname wajib diverifikasi.
             CURLOPT_SSL_VERIFYPEER => true,
             CURLOPT_SSL_VERIFYHOST => 2,
+
+            // Ambil informasi sertifikat untuk analisis.
+            CURLOPT_CERTINFO => true,
 
             CURLOPT_USERAGENT => 'SIMONTA-TechnologyMonitor/1.0',
 
@@ -404,15 +414,28 @@ class HttpInspector
 
             $success = curl_exec($handle);
 
-            $curlError = curl_error($handle);
-            $statusInfo = (int) curl_getinfo(
-                $handle,
-                CURLINFO_RESPONSE_CODE
-            );
+$curlError = curl_error($handle);
+
+// Informasi certificate chain dari koneksi HTTPS.
+$certificateInfo = curl_getinfo(
+    $handle,
+    CURLINFO_CERTINFO
+);
+
+$certificateInfo = is_array($certificateInfo)
+    ? $certificateInfo
+    : [];
+
+$statusInfo = (int) curl_getinfo(
+    $handle,
+    CURLINFO_RESPONSE_CODE
+);
 
         } finally {
-            curl_close($handle);
-        }
+    // CurlHandle akan ditutup otomatis ketika referensinya dilepas.
+    // curl_close() sudah deprecated pada PHP 8.5.
+    unset($handle);
+}
 
         if ($headersTooLarge) {
             throw new LengthException(
@@ -439,11 +462,117 @@ class HttpInspector
         }
 
         return [
-            'status_code' => $statusInfo ?: $statusCode,
-            'headers' => $responseHeaders,
-            'body' => $responseBody,
-        ];
+    'status_code' => $statusInfo ?: $statusCode,
+    'headers' => $responseHeaders,
+    'body' => $responseBody,
+
+    'tls_certificate' => $this->summarizeTlsCertificate(
+        $certificateInfo
+    ),
+];
     }
+
+    /**
+ * Mengambil informasi sertifikat TLS tanpa menyimpan
+ * keseluruhan PEM certificate ke database.
+ *
+ * Informasi hanya ditandai verified apabila request HTTPS
+ * berhasil melalui verifikasi TLS normal dari cURL.
+ */
+private function summarizeTlsCertificate(array $certificateInfo): ?array
+{
+    $leaf = $certificateInfo[0] ?? null;
+
+    if (!is_array($leaf)) {
+        return null;
+    }
+
+    $pem = $leaf['Cert'] ?? $leaf['Certificate'] ?? null;
+
+    $parsed = is_string($pem)
+        ? @openssl_x509_parse($pem)
+        : false;
+
+    $validFrom = is_array($parsed)
+        ? ($parsed['validFrom_time_t'] ?? null)
+        : null;
+
+    $validTo = is_array($parsed)
+        ? ($parsed['validTo_time_t'] ?? null)
+        : null;
+
+    // Fallback jika backend cURL menyediakan tanggal
+    // tetapi tidak menyediakan PEM.
+    if (!$validFrom) {
+        $date = $leaf['Start date'] ?? null;
+        $validFrom = is_string($date)
+            ? strtotime($date)
+            : false;
+    }
+
+    if (!$validTo) {
+        $date = $leaf['Expire date'] ?? null;
+        $validTo = is_string($date)
+            ? strtotime($date)
+            : false;
+    }
+
+    $validFrom = $validFrom ? (int) $validFrom : null;
+    $validTo = $validTo ? (int) $validTo : null;
+
+    $now = time();
+
+    if ($validFrom !== null && $now < $validFrom) {
+        $status = 'not_yet_valid';
+    } elseif ($validTo !== null && $now > $validTo) {
+        $status = 'expired';
+    } elseif ($validFrom !== null && $validTo !== null) {
+        $status = 'valid';
+    } else {
+        $status = 'verified_details_unavailable';
+    }
+
+    $subject = is_array($parsed)
+        ? ($parsed['subject']['CN'] ?? null)
+        : null;
+
+    $issuer = is_array($parsed)
+        ? (
+            $parsed['issuer']['CN']
+            ?? $parsed['issuer']['O']
+            ?? null
+        )
+        : null;
+
+    return [
+        'verification' => 'passed',
+        'status' => $status,
+
+        'subject' => $subject
+            ?? $leaf['Subject']
+            ?? null,
+
+        'issuer' => $issuer
+            ?? $leaf['Issuer']
+            ?? null,
+
+        'valid_from' => $validFrom
+            ? gmdate(DATE_ATOM, $validFrom)
+            : null,
+
+        'valid_to' => $validTo
+            ? gmdate(DATE_ATOM, $validTo)
+            : null,
+
+        'days_remaining' => $validTo !== null
+            ? (int) ceil(($validTo - $now) / 86400)
+            : null,
+
+        'subject_alt_names' => is_array($parsed)
+            ? ($parsed['extensions']['subjectAltName'] ?? null)
+            : null,
+    ];
+}
 
     /**
      * Menyelesaikan URL redirect relatif maupun absolut.
@@ -492,88 +621,244 @@ class HttpInspector
     }
 
     /**
-     * Mengambil elemen penting dari HTML.
-     *
-     * LIBXML_NONET mencegah parser melakukan akses jaringan.
-     */
-    private function parseHtml(string $html): array
-    {
-        $title = null;
-        $meta = [];
-        $scripts = [];
+ * Menentukan encoding HTML dan mengonversinya menjadi UTF-8.
+ *
+ * Prioritas:
+ * 1. Byte Order Mark (BOM).
+ * 2. Charset dari HTTP Content-Type.
+ * 3. Deklarasi charset pada elemen meta HTML.
+ * 4. UTF-8 jika valid, selain itu Windows-1252.
+ */
+private function normalizeHtmlEncoding(
+    string $html,
+    string $contentType = ''
+): string {
+    $encoding = null;
 
-        $previousLibxmlSetting = libxml_use_internal_errors(true);
+    // 1. Periksa BOM.
+    if (str_starts_with($html, "\xEF\xBB\xBF")) {
+        $encoding = 'UTF-8';
+        $html = substr($html, 3);
+    } elseif (str_starts_with($html, "\xFF\xFE")) {
+        $encoding = 'UTF-16LE';
+        $html = substr($html, 2);
+    } elseif (str_starts_with($html, "\xFE\xFF")) {
+        $encoding = 'UTF-16BE';
+        $html = substr($html, 2);
+    }
 
-        try {
-            $dom = new DOMDocument();
+    // 2. Periksa charset dari HTTP Content-Type.
+    if (
+        $encoding === null
+        && preg_match(
+            '/\bcharset\s*=\s*["\']?\s*([a-zA-Z0-9._-]+)/i',
+            $contentType,
+            $matches
+        )
+    ) {
+        $encoding = $matches[1];
+    }
 
-            $loaded = @$dom->loadHTML(
-                $html,
-                LIBXML_NONET | LIBXML_NOERROR | LIBXML_NOWARNING
-            );
+    // 3. Periksa deklarasi charset dalam HTML.
+    if ($encoding === null) {
+        $headerSample = substr($html, 0, 4096);
 
-            if ($loaded) {
-                $titleNodes = $dom->getElementsByTagName('title');
-
-                if ($titleNodes->length > 0) {
-                    $title = substr(
-                        trim($titleNodes->item(0)->textContent),
-                        0,
-                        500
-                    );
+        if (
+            preg_match_all(
+                '/<meta\b[^>]*>/i',
+                $headerSample,
+                $metaTags
+            )
+        ) {
+            foreach ($metaTags[0] as $metaTag) {
+                if (
+                    preg_match(
+                        '/\bcharset\s*=\s*["\']?\s*([a-zA-Z0-9._-]+)/i',
+                        $metaTag,
+                        $matches
+                    )
+                ) {
+                    $encoding = $matches[1];
+                    break;
                 }
 
-                foreach ($dom->getElementsByTagName('meta') as $node) {
-                    if (count($meta) >= 100) {
-                        break;
-                    }
-
-                    $name = strtolower(
-                        trim(
-                            $node->getAttribute('name')
-                            ?: $node->getAttribute('property')
-                            ?: $node->getAttribute('http-equiv')
-                        )
-                    );
-
-                    $content = trim(
-                        $node->getAttribute('content')
-                    );
-
-                    if ($name === '' || $content === '') {
-                        continue;
-                    }
-
-                    $meta[] = [
-                        'name' => substr($name, 0, 150),
-                        'content' => substr($content, 0, 1000),
-                    ];
-                }
-
-                foreach ($dom->getElementsByTagName('script') as $node) {
-                    if (count($scripts) >= 100) {
-                        break;
-                    }
-
-                    $src = trim($node->getAttribute('src'));
-
-                    if ($src !== '') {
-                        $scripts[] = substr($src, 0, 2048);
-                    }
+                if (
+                    preg_match(
+                        '/\bcontent\s*=\s*["\'][^"\']*charset\s*=\s*([a-zA-Z0-9._-]+)/i',
+                        $metaTag,
+                        $matches
+                    )
+                ) {
+                    $encoding = $matches[1];
+                    break;
                 }
             }
-
-        } finally {
-            libxml_clear_errors();
-            libxml_use_internal_errors($previousLibxmlSetting);
         }
-
-        return [
-            'page_title' => $title,
-            'meta' => $meta,
-            'scripts' => array_values(array_unique($scripts)),
-        ];
     }
+
+    // 4. Tentukan fallback.
+    if ($encoding === null) {
+        $encoding = preg_match('//u', $html)
+            ? 'UTF-8'
+            : 'Windows-1252';
+    }
+
+    $normalizedEncoding = strtoupper(
+        str_replace('_', '-', trim($encoding))
+    );
+
+    // Normalisasi beberapa nama encoding umum.
+    $aliases = [
+        'UTF8' => 'UTF-8',
+        'SHIFT-JIS' => 'SJIS-win',
+        'SHIFT-JISX0213' => 'SJIS-win',
+        'WINDOWS-31J' => 'SJIS-win',
+        'CP932' => 'SJIS-win',
+        'SJIS' => 'SJIS-win',
+        'ISO-8859-1' => 'Windows-1252',
+        'LATIN1' => 'Windows-1252',
+        'US-ASCII' => 'Windows-1252',
+    ];
+
+    $sourceEncoding = $aliases[$normalizedEncoding]
+        ?? $normalizedEncoding;
+
+    // Tidak perlu melakukan konversi apabila sudah UTF-8.
+    if ($sourceEncoding === 'UTF-8') {
+        return $html;
+    }
+
+    // Utamakan mbstring.
+    if (function_exists('mb_convert_encoding')) {
+        try {
+            return mb_convert_encoding(
+                $html,
+                'UTF-8',
+                $sourceEncoding
+            );
+        } catch (\Throwable $exception) {
+            report($exception);
+        }
+    }
+
+    // Gunakan iconv sebagai alternatif.
+    if (function_exists('iconv')) {
+        try {
+            $converted = @iconv(
+                $sourceEncoding,
+                'UTF-8//IGNORE',
+                $html
+            );
+
+            if ($converted !== false) {
+                return $converted;
+            }
+        } catch (\Throwable $exception) {
+            report($exception);
+        }
+    }
+
+    // Jangan menggagalkan keseluruhan proses scan.
+    return $html;
+}
+
+    /**
+ * Mengambil elemen penting dari HTML.
+ *
+ * Semua teks dinormalisasi menjadi UTF-8 sebelum diproses
+ * oleh DOMDocument.
+ *
+ * LIBXML_NONET mencegah parser melakukan akses jaringan.
+ */
+private function parseHtml(
+    string $html,
+    string $contentType = ''
+): array {
+    $title = null;
+    $meta = [];
+    $scripts = [];
+
+    $html = $this->normalizeHtmlEncoding(
+        $html,
+        $contentType
+    );
+
+    $previousLibxmlSetting = libxml_use_internal_errors(true);
+
+    try {
+        $dom = new DOMDocument('1.0', 'UTF-8');
+
+        // Deklarasi ini membantu libxml membaca dokumen sebagai UTF-8.
+        $loaded = @$dom->loadHTML(
+            '<?xml encoding="UTF-8">' . $html,
+            LIBXML_NONET | LIBXML_NOERROR | LIBXML_NOWARNING
+        );
+
+        if ($loaded) {
+            $titleNodes = $dom->getElementsByTagName('title');
+
+            if ($titleNodes->length > 0) {
+                $rawTitle = trim(
+                    $titleNodes->item(0)->textContent
+                );
+
+                $title = function_exists('mb_substr')
+                    ? mb_substr($rawTitle, 0, 500, 'UTF-8')
+                    : substr($rawTitle, 0, 500);
+            }
+
+            foreach ($dom->getElementsByTagName('meta') as $node) {
+                if (count($meta) >= 100) {
+                    break;
+                }
+
+                $name = strtolower(
+                    trim(
+                        $node->getAttribute('name')
+                        ?: $node->getAttribute('property')
+                        ?: $node->getAttribute('http-equiv')
+                    )
+                );
+
+                $content = trim(
+                    $node->getAttribute('content')
+                );
+
+                if ($name === '' || $content === '') {
+                    continue;
+                }
+
+                $meta[] = [
+                    'name' => substr($name, 0, 150),
+                    'content' => function_exists('mb_substr')
+                        ? mb_substr($content, 0, 1000, 'UTF-8')
+                        : substr($content, 0, 1000),
+                ];
+            }
+
+            foreach ($dom->getElementsByTagName('script') as $node) {
+                if (count($scripts) >= 100) {
+                    break;
+                }
+
+                $src = trim($node->getAttribute('src'));
+
+                if ($src !== '') {
+                    $scripts[] = substr($src, 0, 2048);
+                }
+            }
+        }
+    } finally {
+        libxml_clear_errors();
+        libxml_use_internal_errors($previousLibxmlSetting);
+    }
+
+    return [
+        'page_title' => $title,
+        'meta' => $meta,
+        'scripts' => array_values(array_unique($scripts)),
+    ];
+}
 
     /**
      * Mengambil nama cookie saja, tidak menyimpan nilainya.
@@ -610,6 +895,42 @@ class HttpInspector
 
         return array_values(array_unique($names));
     }
+
+    /**
+ * Mengambil response headers yang berkaitan dengan keamanan browser.
+ */
+private function extractSecurityHeaders(array $headers): array
+{
+    $allowed = [
+        'content-security-policy',
+        'content-security-policy-report-only',
+        'strict-transport-security',
+        'x-content-type-options',
+        'x-frame-options',
+        'referrer-policy',
+        'permissions-policy',
+        'cross-origin-opener-policy',
+        'cross-origin-embedder-policy',
+        'cross-origin-resource-policy',
+    ];
+
+    $result = [];
+
+    foreach ($allowed as $name) {
+        if (!isset($headers[$name])) {
+            continue;
+        }
+
+        $result[$name] = array_values(
+            array_map(
+                fn ($value) => substr((string) $value, 0, 4096),
+                $headers[$name]
+            )
+        );
+    }
+
+    return $result;
+}
 
     /**
      * Hanya mengembalikan header yang relevan untuk fingerprint.

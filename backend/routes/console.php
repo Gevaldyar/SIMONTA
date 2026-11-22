@@ -17,3 +17,9 @@ Schedule::command('simonta:dispatch-scheduled-scans')
 Schedule::command('simonta:recover-stale-scans')
     ->everyMinute()
     ->withoutOverlapping(5);
+
+// Pemeriksaan registrasi domain dan sertifikat SSL setiap hari.
+Schedule::command('simonta:check-domain-ssl')
+    ->dailyAt('02:00')
+    ->timezone('Asia/Jakarta')
+    ->withoutOverlapping(60);
