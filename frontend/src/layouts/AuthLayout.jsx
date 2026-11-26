@@ -108,6 +108,7 @@ function InfrastructureArtwork() {
             />
           </g>
         ))}
+
         {/* Central monitoring target */}
         <circle
           cx="455"
@@ -151,7 +152,7 @@ function AuthLayout() {
         className="
           relative isolate flex min-h-[390px] flex-col
           justify-between overflow-hidden bg-[#191A20]
-          px-6 py-7 text-[#EEE9DD]
+          px-6 py-7 text-[#F5F1E8]
           sm:min-h-[430px] sm:px-10 sm:py-9
           lg:min-h-screen lg:px-14 lg:py-12
           xl:px-[8%]
@@ -160,7 +161,7 @@ function AuthLayout() {
         <InfrastructureArtwork />
 
         {/* Brand */}
-        <div className="relative z-10">
+        <div className="relative z-10 [&_*]:!text-[#F5F1E8] [&_span]:!text-[#D7B978]">
           <BrandLogo />
         </div>
 
@@ -169,7 +170,7 @@ function AuthLayout() {
           <div className="mb-7 flex items-center gap-3">
             <span className="h-px w-9 bg-[#963746]" />
 
-            <span className="text-[9px] font-semibold tracking-[0.25em] text-[#B69A69]">
+            <span className="text-[9px] font-semibold tracking-[0.25em] !text-[#D7B978]">
               DIGITAL INFRASTRUCTURE / TASIKMALAYA
             </span>
           </div>
@@ -178,14 +179,20 @@ function AuthLayout() {
             className="
               font-serif text-[clamp(2.8rem,5vw,5.2rem)]
               leading-[1.04] tracking-[-0.045em]
-              text-[#EEE9DD]
+              !text-[#F5F1E8]
             "
+            style={{ color: '#F5F1E8' }}
           >
             See the
             <br />
-            <span className="italic text-[#B69A69]">
+
+            <span
+              className="italic !text-[#D7B978]"
+              style={{ color: '#D7B978' }}
+            >
               infrastructure.
             </span>
+
             <br />
             Understand
             <br />
@@ -195,8 +202,9 @@ function AuthLayout() {
           <p
             className="
               mt-7 max-w-[390px] text-xs leading-7
-              text-[#AAA69D] sm:text-sm
+              !text-[#D5D0C6] sm:text-sm
             "
+            style={{ color: '#D5D0C6' }}
           >
             Platform monitoring infrastruktur digital untuk
             mengawasi, mengidentifikasi, dan memahami teknologi
@@ -213,21 +221,21 @@ function AuthLayout() {
           "
         >
           <div>
-            <p className="text-[8px] tracking-[0.22em] text-[#B69A69]">
+            <p className="text-[8px] tracking-[0.22em] text-[#D7B978]">
               SYSTEM CLASSIFICATION
             </p>
 
-            <p className="mt-1 text-[10px] tracking-[0.12em] text-[#C6C0B5]">
+            <p className="mt-1 text-[10px] tracking-[0.12em] text-[#E0DBD2]">
               ADMINISTRATIVE / INTERNAL ACCESS
             </p>
           </div>
 
           <div className="text-right">
-            <p className="font-serif text-2xl italic text-[#B69A69]">
+            <p className="font-serif text-2xl italic text-[#D7B978]">
               01—04
             </p>
 
-            <p className="mt-1 text-[8px] tracking-[0.18em] text-[#8D8982]">
+            <p className="mt-1 text-[8px] tracking-[0.18em] text-[#C5BFB4]">
               DIGITAL OBSERVATORY
             </p>
           </div>
